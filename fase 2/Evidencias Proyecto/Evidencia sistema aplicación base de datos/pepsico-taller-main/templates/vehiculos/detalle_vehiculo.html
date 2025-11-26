@@ -1,0 +1,217 @@
+<!-- templates/vehiculos/detalle_vehiculo.html -->
+{% extends 'base.html' %}
+
+{% block title %}Detalle de {{ vehiculo.patente }} - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 style="margin: 0;"><i class="fa-solid fa-car" aria-hidden="true"></i> {{ vehiculo.patente }} - {{ vehiculo.marca }} {{ vehiculo.modelo }}</h2>
+        <div>
+            <span class="status-badge status-{{ vehiculo.estado }}" style="font-size: 1rem;">
+                {{ vehiculo.get_estado_display }}
+            </span>
+            <a href="{% url 'lista_taller' %}" class="btn btn-primary"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Volver a la Lista</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="grid grid-2">
+            <!-- Información del Vehículo -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 style="margin: 0;"><i class="fa-solid fa-clipboard" aria-hidden="true"></i> Información del Vehículo</h3>
+                </div>
+                <div class="card-body">
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="padding: 0.5rem; font-weight: bold; width: 40%;">Patente:</td>
+                            <td style="padding: 0.5rem;">{{ vehiculo.patente }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem; font-weight: bold;">Tipo:</td>
+                            <td style="padding: 0.5rem;">{{ vehiculo.get_tipo_vehiculo_display }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem; font-weight: bold;">Marca/Modelo:</td>
+                            <td style="padding: 0.5rem;">{{ vehiculo.marca }} {{ vehiculo.modelo }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem; font-weight: bold;">Año:</td>
+                            <td style="padding: 0.5rem;">{{ vehiculo.año }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem; font-weight: bold;">Chasis:</td>
+                            <td style="padding: 0.5rem;">{{ vehiculo.numero_chasis|default:"No especificado" }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem; font-weight: bold;">Kilometraje:</td>
+                            <td style="padding: 0.5rem;">{{ vehiculo.kilometraje }} km</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Información del Chofer -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 style="margin: 0;"><i class="fa-solid fa-user" aria-hidden="true"></i> Información del Chofer</h3>
+                </div>
+                <div class="card-body">
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="padding: 0.5rem; font-weight: bold; width: 40%;">Nombre:</td>
+                            <td style="padding: 0.5rem;">{{ vehiculo.nombre_chofer }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem; font-weight: bold;">Teléfono:</td>
+                            <td style="padding: 0.5rem;">{{ vehiculo.telefono_chofer }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem; font-weight: bold;">Empresa:</td>
+                            <td style="padding: 0.5rem;">{{ vehiculo.empresa_chofer|default:"No especificada" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del Ingreso -->
+        <div class="card" style="margin-top: 1.5rem;">
+                <div class="card-header">
+                <h3 style="margin: 0;"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Información del Ingreso</h3>
+            </div>
+            <div class="card-body">
+                <table style="width: 100%;">
+                    <tr>
+                        <td style="padding: 0.5rem; font-weight: bold; width: 20%;">Fecha Ingreso:</td>
+                        <td style="padding: 0.5rem;">{{ vehiculo.fecha_ingreso|date:"d/m/Y H:i" }}</td>
+                        <td style="padding: 0.5rem; font-weight: bold; width: 20%;">Ingresado por:</td>
+                        <td style="padding: 0.5rem;">
+                            {% if vehiculo.guardia_ingreso %}
+                                {{ vehiculo.guardia_ingreso.get_full_name|default:vehiculo.guardia_ingreso.username }}
+                            {% else %}
+                                <em>Sin registrar</em>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0.5rem; font-weight: bold; vertical-align: top;">Motivo:</td>
+                        <td style="padding: 0.5rem;" colspan="3">{{ vehiculo.motivo_ingreso }}</td>
+                    </tr>
+                    {% if vehiculo.observaciones_ingreso %}
+                    <tr>
+                        <td style="padding: 0.5rem; font-weight: bold; vertical-align: top;">Observaciones:</td>
+                        <td style="padding: 0.5rem;" colspan="3">{{ vehiculo.observaciones_ingreso }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+
+        {% if user.is_superuser or user.rol == 'admin' or user.rol == 'guardia' or user.rol == 'recepcionista' %}
+        {% if vehiculo.estado != 'ingresado' %}
+        <div class="card" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h3 style="margin: 0;"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Confirmar Ingreso</h3>
+            </div>
+            <div class="card-body" style="display:flex; justify-content:center; gap:1rem; align-items:center;">
+                <div style="color:#666;">Estado actual: <span class="status-badge status-{{ vehiculo.estado }}">{{ vehiculo.get_estado_display }}</span></div>
+                <form method="post" action="{% url 'confirmar_ingreso_vehiculo' vehiculo.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success" onclick="return confirm('¿Confirmar ingreso del vehículo?')">
+                        ✅ Confirmar Ingreso
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <!-- Tareas del Vehículo -->
+        <div class="card" style="margin-top: 1.5rem;">
+                <div class="card-header">
+                <h3 style="margin: 0;"><i class="fa-solid fa-tools" aria-hidden="true"></i> Tareas Asociadas</h3>
+                {% if user.rol == 'jefe_taller' or user.rol == 'admin' %}
+                <a href="{% url 'crear_tarea' %}?vehiculo={{ vehiculo.id }}" class="btn btn-success"><i class="fa-solid fa-plus" aria-hidden="true"></i> Nueva Tarea</a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if vehiculo.tareas.all %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Tarea</th>
+                            <th>Mecánico</th>
+                            <th>Prioridad</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tarea in vehiculo.tareas.all %}
+                        <tr>
+                            <td>{{ tarea.titulo }}</td>
+                            <td>
+                                {% if tarea.mecanico_asignado %}
+                                    {{ tarea.mecanico_asignado.get_full_name|default:tarea.mecanico_asignado.username }}
+                                {% else %}
+                                    <em>Sin asignar</em>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="status-badge priority-{{ tarea.prioridad }}">
+                                    {{ tarea.get_prioridad_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="status-badge">
+                                    {{ tarea.get_estado_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'detalle_tarea' tarea.id %}" class="btn btn-sm btn-primary"><i class="fa-solid fa-eye" aria-hidden="true"></i> Ver</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="text-align: center; color: #666; padding: 1rem;">
+                    No hay tareas asignadas a este vehículo.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+         <!-- Gestión de Siniestros -->
+        <div class="card" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h3 style="margin: 0;"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Gestión de Siniestros</h3>
+            </div>
+            <div class="card-body">
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="{% url 'crear_siniestro' vehiculo.id %}" class="btn btn-warning">
+                        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Reportar Siniestro
+                    </a>
+                    <a href="{% url 'lista_siniestros' %}?vehiculo={{ vehiculo.patente }}" class="btn btn-info">
+                        <i class="fa-solid fa-clipboard" aria-hidden="true"></i> Ver Siniestros
+                    </a>
+                </div>
+                
+                <!-- Mostrar siniestros existentes -->
+                {% if vehiculo.siniestros.exists %}
+                <div style="margin-top: 1rem;">
+                    <h4>Siniestros Registrados:</h4>
+                    {% for siniestro in vehiculo.siniestros.all|slice:":3" %}
+                    <div style="padding: 0.5rem; background: #f8f9fa; border-radius: 4px; margin-top: 0.5rem; border: 1px solid #e9ecef;">
+                        <p><strong>Fecha:</strong> {{ siniestro.fecha|date:"d/m/Y" }}</p>
+                        <p><strong>Descripción:</strong> {{ siniestro.descripcion|truncatewords:20 }}</p>
+                        <a href="{% url 'detalle_siniestro' siniestro.id %}" class="btn btn-sm btn-outline-secondary">Ver detalles</a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+                
+ {% endblock %}

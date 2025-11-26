@@ -1,0 +1,105 @@
+<!-- templates/vehiculos/subir_documento.html -->
+{% extends 'base.html' %}
+
+{% block title %}Subir Documento - {{ vehiculo.patente }} - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 style="margin: 0;">📤 Subir Documento - {{ vehiculo.patente }}</h2>
+        <a href="{% url 'documentos_vehiculo' vehiculo.id %}" class="btn btn-primary">← Volver a Documentos</a>
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="grid grid-2">
+                <div>
+                    <div class="form-group">
+                        <label for="id_tipo_documento">Tipo de Documento *</label>
+                        {{ form.tipo_documento }}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id_archivo">Archivo *</label>
+                        {{ form.archivo }}
+                        <small style="color: #666;">
+                            <i class="fa-solid fa-info-circle"></i> 
+                            <strong>Formatos permitidos:</strong> PDF, JPG, JPEG, PNG, DOC, DOCX, TXT<br>
+                            <i class="fa-solid fa-weight-scale"></i> 
+                            <strong>Tamaño máximo:</strong> 10MB
+                        </small>
+                        <div id="archivoInfo" style="margin-top: 0.5rem; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; display: none;">
+                            <small id="archivoNombre" style="color: #004B93; font-weight: 600;"></small><br>
+                            <small id="archivoTamano" style="color: #666;"></small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="form-group">
+                        <label for="id_fecha_vencimiento">Fecha de Vencimiento</label>
+                        {{ form.fecha_vencimiento }}
+                        <small style="color: #666;">Solo para documentos con fecha de expiración</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id_descripcion">Descripción</label>
+                        {{ form.descripcion }}
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 2rem; text-align: center;">
+                <button type="submit" class="btn btn-success" style="padding: 0.75rem 2rem;">
+                    📤 Subir Documento
+                </button>
+                <a href="{% url 'documentos_vehiculo' vehiculo.id %}" class="btn btn-primary" style="margin-left: 1rem;">
+                    ❌ Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+    <script>
+    // Pre-seleccionar tipo de documento si viene por URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const tipo = urlParams.get('tipo');
+    if (tipo) {
+        document.getElementById('id_tipo_documento').value = tipo;
+    }
+
+    // Mostrar información del archivo seleccionado
+    document.getElementById('id_archivo').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const infoDiv = document.getElementById('archivoInfo');
+        const nombreSpan = document.getElementById('archivoNombre');
+        const tamanoSpan = document.getElementById('archivoTamano');
+        
+        if (file) {
+            // Mostrar información del archivo
+            nombreSpan.textContent = `📄 ${file.name}`;
+            tamanoSpan.textContent = `📏 Tamaño: ${(file.size / 1024 / 1024).toFixed(2)} MB`;
+            infoDiv.style.display = 'block';
+            
+            // Validar tamaño
+            if (file.size > 10 * 1024 * 1024) {
+                infoDiv.style.background = '#ffe6e6';
+                tamanoSpan.innerHTML += ' <span style="color: #dc3545; font-weight: bold;">⚠️ Archivo muy grande</span>';
+            } else {
+                infoDiv.style.background = '#e6f7e6';
+                tamanoSpan.innerHTML += ' <span style="color: #28a745;">✅ Tamaño válido</span>';
+            }
+            
+            // Auto-completar nombre si no hay descripción
+            const descripcionField = document.getElementById('id_descripcion');
+            if (!descripcionField.value.trim()) {
+                descripcionField.value = file.name.split('.')[0].replace(/[_-]/g, ' ');
+            }
+        } else {
+            infoDiv.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}

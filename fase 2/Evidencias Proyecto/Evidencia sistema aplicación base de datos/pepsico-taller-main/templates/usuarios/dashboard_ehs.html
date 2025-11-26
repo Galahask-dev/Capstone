@@ -1,0 +1,188 @@
+<!-- templates/usuarios/dashboard_ehs.html -->
+{% extends 'base.html' %}
+
+{% block title %}Mi Dashboard - EHS - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 style="margin: 0;">🛡️ Mi Dashboard - Seguridad y Salud (EHS)</h2>
+        <a href="{% url 'perfil_usuario' %}" class="btn btn-primary">👤 Mi Perfil</a>
+    </div>
+    <div class="card-body">
+        <!-- Alertas de Seguridad -->
+        <div class="grid grid-3">
+            <div class="card metric-card" style="background: #f8d7da; color: #721c24;">
+                <div class="metric-value">{{ estadisticas.tareas_alto_riesgo }}</div>
+                <div class="metric-label">Tareas Alto Riesgo</div>
+            </div>
+            <div class="card metric-card" style="background: #fff3cd; color: #856404;">
+                <div class="metric-value">{{ estadisticas.siniestros_activos }}</div>
+                <div class="metric-label">Siniestros Activos</div>
+            </div>
+            <div class="card metric-card" style="background: #d1ecf1; color: #0c5460;">
+                <div class="metric-value">{{ estadisticas.vehiculos_taller }}</div>
+                <div class="metric-label">Vehículos en Taller</div>
+            </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top: 2rem; gap: 2rem;">
+            <!-- Tareas de Alto Riesgo -->
+            <div class="card">
+                <div class="card-header" style="background: #f8d7da; color: #721c24;">
+                    <h3 style="margin: 0;">🚨 Tareas de Alto Riesgo</h3>
+                </div>
+                <div class="card-body">
+                    {% if tareas_alto_riesgo %}
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        {% for tarea in tareas_alto_riesgo %}
+                        <div style="padding: 1rem; border-bottom: 1px solid #eee;">
+                            <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 0.5rem;">
+                                <h4 style="margin: 0; color: #dc3545;">{{ tarea.titulo }}</h4>
+                                <span class="status-badge priority-alta">Alta Prioridad</span>
+                            </div>
+                            <p style="margin: 0.25rem 0; color: #666;">
+                                🚗 {{ tarea.vehiculo.patente }} - {{ tarea.vehiculo.marca }} {{ tarea.vehiculo.modelo }}
+                            </p>
+                            <p style="margin: 0.25rem 0; color: #666; font-size: 0.9rem;">
+                                👨‍🔧 {{ tarea.mecanico_asignado.get_full_name|default:tarea.mecanico_asignado.username }}<br>
+                                📍 Estado: {{ tarea.get_estado_display }}
+                            </p>
+                            <p style="margin: 0.25rem 0; font-size: 0.9rem;">
+                                {{ tarea.descripcion|truncatewords:15 }}
+                            </p>
+                            <div style="margin-top: 0.5rem;">
+                                <a href="#" class="btn btn-sm btn-warning">👁️ Supervisar</a>
+                                <a href="#" class="btn btn-sm btn-info">📝 Reportar</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div style="text-align: center; padding: 2rem; color: #666;">
+                        <div style="font-size: 3rem; margin-bottom: 0.5rem;">✅</div>
+                        <p style="margin: 0;">No hay tareas de alto riesgo identificadas.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Siniestros Activos -->
+            <div class="card">
+                <div class="card-header" style="background: #fff3cd; color: #856404;">
+                    <h3 style="margin: 0;">🚗 Siniestros Activos</h3>
+                </div>
+                <div class="card-body">
+                    {% if siniestros_activos %}
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        {% for siniestro in siniestros_activos %}
+                        <div style="padding: 1rem; border-bottom: 1px solid #eee;">
+                            <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 0.5rem;">
+                                <h4 style="margin: 0; color: #856404;">{{ siniestro.numero_siniestro }}</h4>
+                                <span class="status-badge" style="background: #fff3cd; color: #856404;">
+                                    {{ siniestro.get_estado_display }}
+                                </span>
+                            </div>
+                            <p style="margin: 0.25rem 0; color: #666;">
+                                🚗 {{ siniestro.vehiculo.patente }}<br>
+                                📍 {{ siniestro.lugar_siniestro }}<br>
+                                📅 {{ siniestro.fecha_siniestro|date:"d/m/Y" }}
+                            </p>
+                            <p style="margin: 0.25rem 0; font-size: 0.9rem;">
+                                {{ siniestro.descripcion|truncatewords:10 }}
+                            </p>
+                            <div style="margin-top: 0.5rem;">
+                                <a href="{% url 'detalle_siniestro' siniestro.id %}" class="btn btn-sm btn-primary"><i class="fa-solid fa-eye" aria-hidden="true"></i> Ver Detalles</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div style="text-align: center; padding: 2rem; color: #666;">
+                        <div style="font-size: 3rem; margin-bottom: 0.5rem;">✅</div>
+                        <p style="margin: 0;">No hay siniestros activos.</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Botón para reportar nuevo siniestro -->
+                    <div style="margin-top: 1rem; text-align: center;">
+                        <a href="{% url 'lista_siniestros' %}" class="btn btn-warning">
+                            📋 Gestionar Siniestros
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pausas por Seguridad -->
+        <div class="card" style="margin-top: 2rem;">
+            <div class="card-header">
+                <h3 style="margin: 0;">⏸️ Pausas Relacionadas con Seguridad</h3>
+            </div>
+            <div class="card-body">
+                {% if pausas_seguridad %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Tarea</th>
+                            <th>Vehículo</th>
+                            <th>Motivo</th>
+                            <th>Duración</th>
+                            <th>Mecánico</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pausa in pausas_seguridad %}
+                        <tr>
+                            <td>{{ pausa.tarea.titulo }}</td>
+                            <td>{{ pausa.tarea.vehiculo.patente }}</td>
+                            <td>{{ pausa.get_motivo_display }}</td>
+                            <td>
+                                {% if pausa.fecha_fin %}
+                                    {{ pausa.fecha_inicio|timesince:pausa.fecha_fin }}
+                                {% else %}
+                                    {{ pausa.fecha_inicio|timesince }} (activa)
+                                {% endif %}
+                            </td>
+                            <td>{{ pausa.tarea.mecanico_asignado.get_full_name|default:pausa.tarea.mecanico_asignado.username }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div style="text-align: center; padding: 2rem; color: #666;">
+                    <div style="font-size: 3rem; margin-bottom: 0.5rem;">✅</div>
+                    <p style="margin: 0;">No hay pausas relacionadas con seguridad recientes.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Acciones de Seguridad -->
+        <div class="card" style="margin-top: 2rem;">
+            <div class="card-header">
+                <h3 style="margin: 0;">⚡ Acciones de Seguridad</h3>
+            </div>
+            <div class="card-body">
+                <div class="grid grid-3">
+                    <a href="{% url 'lista_siniestros' %}" class="card" style="text-decoration: none; color: inherit; text-align: center; padding: 1.5rem;">
+                        <div style="font-size: 2rem;">🚨</div>
+                        <div><strong>Gestionar Siniestros</strong></div>
+                        <small>Reportar y seguir incidentes</small>
+                    </a>
+                    <a href="{% url 'lista_tareas' %}?prioridad=alta" class="card" style="text-decoration: none; color: inherit; text-align: center; padding: 1.5rem;">
+                        <div style="font-size: 2rem;">🔍</div>
+                        <div><strong>Supervisar Tareas</strong></div>
+                        <small>Tareas de alto riesgo</small>
+                    </a>
+                    <a href="{% url 'reporte_tiempos_pausas' %}" class="card" style="text-decoration: none; color: inherit; text-align: center; padding: 1.5rem;">
+                        <div style="font-size: 2rem;">📊</div>
+                        <div><strong>Reportes EHS</strong></div>
+                        <small>Análisis de seguridad</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

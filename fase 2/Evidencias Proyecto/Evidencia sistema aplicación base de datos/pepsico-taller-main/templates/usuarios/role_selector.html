@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Vista como Rol{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">Vista como Rol</div>
+  <div class="card-body">
+    <p>Elige un rol para ver la aplicación como si fueras un usuario con ese rol.</p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <select class="form-control" name="rol">
+          {% for key, label in roles %}
+            <option value="{{ key }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">Ver como</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

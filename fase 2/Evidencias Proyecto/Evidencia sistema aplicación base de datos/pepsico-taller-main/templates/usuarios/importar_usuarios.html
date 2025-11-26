@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Importar Usuarios - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="card border-0 shadow-lg mb-4">
+        <div class="card-header bg-light">
+            <h3 style="margin:0;"><i class="fas fa-file-import me-2"></i> Importar Usuarios desde Excel/CSV</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'importar_usuarios_excel' %}" enctype="multipart/form-data" class="mb-3">
+                {% csrf_token %}
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-6">
+                        <label class="form-label">Archivo (.xlsx o .csv)</label>
+                        <input type="file" name="archivo_excel" accept=".xlsx,.csv" class="form-control" required />
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-cloud-upload-alt me-1"></i> Subir e Importar
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <div>
+                <h5>Formato de ejemplo</h5>
+                <pre style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:8px;padding:0.75rem;white-space:pre;overflow:auto;">{{ ejemplo_csv }}</pre>
+                <p class="text-muted" style="margin-top:0.5rem;">Columnas: username, email, first_name, last_name, rol, telefono, activo, is_superuser, password</p>
+            </div>
+        </div>
+    </div>
+    <a href="{% url 'lista_usuarios' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Volver a Usuarios</a>
+</div>
+{% endblock %}

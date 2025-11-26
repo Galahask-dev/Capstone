@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Categorías de Repuestos - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 style="margin:0;"><i class="fa-solid fa-tags" aria-hidden="true"></i> Categorías de Repuestos</h2>
+        <a href="{% url 'crear_categoria' %}" class="btn btn-primary"><i class="fa-solid fa-plus" aria-hidden="true"></i> Nueva Categoría</a>
+    </div>
+    <div class="card-body">
+        {% if categorias %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Creada</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in categorias %}
+                <tr>
+                    <td><strong>{{ c.nombre }}</strong></td>
+                    <td>{{ c.descripcion|truncatewords:12 }}</td>
+                    <td>{{ c.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <!-- Por ahora sólo ver detalle (podemos añadir editar/eliminar luego) -->
+                        <!-- Enlace a lista de repuestos filtrados por categoría -->
+                        <a href="{% url 'lista_repuestos' %}?categoria={{ c.id }}" class="btn btn-sm btn-primary">Ver Repuestos</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align:center; padding: 2rem; color: #666;">
+            <i class="fa-solid fa-tags" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+            <h4>No hay categorías registradas</h4>
+            <a href="{% url 'crear_categoria' %}" class="btn btn-primary">Crear primera categoría</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

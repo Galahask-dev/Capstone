@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Registrar Salida de Vehículo{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card border-0 shadow-lg overflow-hidden">
+                <div class="card-header text-white" style="background: linear-gradient(90deg, #0d6efd, #4dabf7);">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h4 class="mb-0">
+                            <i class="fas fa-sign-out-alt"></i> {{ titulo }}
+                        </h4>
+                        <span class="badge {% if vehiculo.estado == 'listo' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                            {{ vehiculo.get_estado_display }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3" style="display:grid;grid-template-columns:repeat(4, minmax(140px,1fr));gap:0.75rem;">
+                        <div class="p-3 border rounded" style="background:#f8fafc;">
+                            <div class="text-muted" style="font-size:0.85rem;">Patente</div>
+                            <div class="fw-bold" style="font-size:1.1rem;">{{ vehiculo.patente }}</div>
+                        </div>
+                        <div class="p-3 border rounded" style="background:#f8fafc;">
+                            <div class="text-muted" style="font-size:0.85rem;">Vehículo</div>
+                            <div class="fw-bold" style="font-size:1.1rem;">{{ vehiculo.marca }} {{ vehiculo.modelo }}</div>
+                        </div>
+                        <div class="p-3 border rounded" style="background:#f8fafc;">
+                            <div class="text-muted" style="font-size:0.85rem;">Tipo</div>
+                            <div class="fw-bold" style="font-size:1.1rem;">{{ vehiculo.get_tipo_vehiculo_display }}</div>
+                        </div>
+                        <div class="p-3 border rounded" style="background:#f8fafc;">
+                            <div class="text-muted" style="font-size:0.85rem;">Entrada</div>
+                            <div class="fw-bold" style="font-size:1.1rem;">{{ registro_entrada.fecha_hora|date:"d/m/Y H:i" }}</div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 mb-3" style="color:#495057;">
+                        <i class="fas fa-user"></i>
+                        <span>Chofer de Entrada:</span>
+                        <strong>{{ registro_entrada.nombre_chofer|default:"—" }}</strong>
+                    </div>
+
+                    {% if advertencia %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Advertencia:</strong> {{ advertencia }}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <h5 class="mt-3"><i class="fas fa-user"></i> Información del Chofer que Retira</h5>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.nombre_chofer.id_for_label }}">
+                                        {{ form.nombre_chofer.label }}
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.nombre_chofer }}
+                                    {% if form.nombre_chofer.errors %}
+                                    <div class="text-danger small">{{ form.nombre_chofer.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.telefono_chofer.id_for_label }}">
+                                        <i class="fas fa-phone"></i> {{ form.telefono_chofer.label }}
+                                    </label>
+                                    {{ form.telefono_chofer }}
+                                    {% if form.telefono_chofer.errors %}
+                                    <div class="text-danger small">{{ form.telefono_chofer.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        
+
+                        <hr>
+                        <h5><i class="fas fa-clipboard"></i> Observaciones de Salida</h5>
+
+                        <div class="form-group">
+                            <label for="{{ form.observaciones.id_for_label }}">
+                                {{ form.observaciones.label }}
+                            </label>
+                            {{ form.observaciones }}
+                            <small class="form-text text-muted">
+                                Registre cualquier observación sobre la entrega del vehículo.
+                            </small>
+                            {% if form.observaciones.errors %}
+                            <div class="text-danger small">{{ form.observaciones.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.foto_vehiculo.id_for_label }}">
+                                <i class="fas fa-camera"></i> {{ form.foto_vehiculo.label }}
+                            </label>
+                            {{ form.foto_vehiculo }}
+                            <small class="form-text text-muted">
+                                Se recomienda tomar una foto del vehículo al salir.
+                            </small>
+                            {% if form.foto_vehiculo.errors %}
+                            <div class="text-danger small">{{ form.foto_vehiculo.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        {% if registro_entrada.observaciones %}
+                        <div class="alert alert-secondary">
+                            <h6><i class="fas fa-info-circle"></i> Observaciones de Entrada:</h6>
+                            <p class="mb-0">{{ registro_entrada.observaciones }}</p>
+                        </div>
+                        {% endif %}
+
+                        <hr>
+
+                        <div class="form-group" style="display:flex;justify-content:flex-end;gap:0.5rem;">
+                            <a href="{% url 'panel_guardia' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check"></i> Confirmar Salida
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Mostrar foto de entrada si existe -->
+            {% if registro_entrada.foto_vehiculo %}
+            <div class="card mt-3 border-0 shadow-sm">
+                <div class="card-header" style="background:#f8f9fa;">
+                    <h6 class="mb-0"><i class="fas fa-image"></i> Foto de Entrada</h6>
+                </div>
+                <div class="card-body text-center">
+                    <img src="{{ registro_entrada.foto_vehiculo.url }}" alt="Foto de entrada" class="img-fluid" style="max-height: 400px; border-radius: 6px;">
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+</style>
+{% endblock %}

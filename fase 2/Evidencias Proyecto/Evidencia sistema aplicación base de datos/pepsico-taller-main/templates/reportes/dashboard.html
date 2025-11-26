@@ -1,0 +1,748 @@
+<!-- templates/reportes/dashboard.html -->
+{% extends 'base.html' %}
+
+{% block title %}Dashboard de Reportes - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0;"><i class="fa-solid fa-chart-pie me-2"></i> Dashboard de Reportes</h2>
+        <div>
+            <a href="{% url 'reporte_productividad' %}" class="btn btn-warning"><i class="fa-solid fa-user-wrench me-1"></i> Productividad</a>
+            <a href="{% url 'reporte_tiempos_pausas' %}" class="btn btn-info-bg ms-2"><i class="fa-solid fa-stopwatch me-1"></i> Tiempos y Pausas</a>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <!-- Métricas Principales - Indicadores Prioritarios -->
+        <div class="grid grid-4">
+            <div class="card metric-card priority-high">
+                <div class="metric-value">{{ vehiculos_disponibles|default:0 }}</div>
+                <div class="metric-label">Vehículos Disponibles</div>
+                <div class="metric-subtitle">Disponibilidad Operacional</div>
+            </div>
+            <div class="card metric-card priority-high">
+                <div class="metric-value">{{ tiempo_promedio_inactividad|default:0 }}h</div>
+                <div class="metric-label">Tiempo Promedio Inactividad</div>
+                <div class="metric-subtitle">Impacto en Operación</div>
+            </div>
+            <div class="card metric-card priority-medium">
+                <div class="metric-value">{{ vehiculos_taller }}</div>
+                <div class="metric-label">En Taller</div>
+                <div class="metric-subtitle">Carga Actual</div>
+            </div>
+            <div class="card metric-card priority-medium">
+                <div class="metric-value">{{ vehiculos_siniestrados|default:0 }}</div>
+                <div class="metric-label">Vehículos Siniestrados</div>
+                <div class="metric-subtitle">Gestión de Siniestros</div>
+            </div>
+        </div>
+
+        <!-- Segunda Fila de Métricas - Productividad y Repuestos -->
+        <div class="grid grid-4" style="margin-top: 1.5rem;">
+            <div class="card metric-card productivity">
+                <div class="metric-value">{{ trabajos_cerrados|default:0 }}/{{ trabajos_planificados|default:0 }}</div>
+                <div class="metric-label">Trabajos Cerrados vs Planificados</div>
+                <div class="metric-subtitle">Productividad Diaria</div>
+            </div>
+            <div class="card metric-card cost-control">
+                <div class="metric-value">${{ costo_repuestos_mes|default:0|floatformat:0 }}</div>
+                <div class="metric-label">Costos Repuestos (Mes)</div>
+                <div class="metric-subtitle">Control de Gastos</div>
+            </div>
+            <div class="card metric-card inventory">
+                <div class="metric-value">{{ repuestos_criticos|default:0 }}</div>
+                <div class="metric-label">Repuestos Críticos</div>
+                <div class="metric-subtitle">Stock Bajo</div>
+            </div>
+            <div class="card metric-card traceability">
+                <div class="metric-value">{{ repuestos_perdidos|default:0 }}</div>
+                <div class="metric-label">Repuestos Perdidos/Dañados</div>
+                <div class="metric-subtitle">Trazabilidad</div>
+            </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top: 2rem; gap: 2rem;">
+            <!-- Distribución de Vehículos por Estado -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 style="margin: 0;"><i class="fa-solid fa-car-side me-2"></i> Vehículos por Estado</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Gráfico de Dona -->
+                    <div class="chart-container" style="position: relative; height: 40vh; width: 100%;">
+                        <canvas id="chartVehiculosEstado"></canvas>
+                    </div>
+
+                    <!-- Tabla existente (opcional, para detalles) -->
+                    <div style="margin-top: 1rem;">
+                        {% for item in vehiculos_por_estado %}
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #eee;">
+                            <span>
+                                <span class="status-badge status-{{ item.estado }}">
+                                    {{ item.estado|title }}
+                                </span>
+                            </span>
+                            <strong>{{ item.total }}</strong>
+                        </div>
+                        {% empty %}
+                        <p style="text-align: center; color: #666;">No hay datos disponibles</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Distribución de Tareas por Prioridad -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 style="margin: 0;"><i class="fa-solid fa-bullseye me-2"></i> Tareas por Prioridad</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Gráfico de Dona -->
+                    <div class="chart-container" style="position: relative; height: 40vh; width: 100%;">
+                        <canvas id="chartTareasPrioridad"></canvas>
+                    </div>
+
+                    <!-- Tabla existente (opcional, para detalles) -->
+                    <div style="margin-top: 1rem;">
+                        {% for item in tareas_por_prioridad %}
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #eee;">
+                            <span>
+                                <span class="status-badge priority-{{ item.prioridad }}">
+                                    {{ item.prioridad|title }}
+                                </span>
+                            </span>
+                            <strong>{{ item.total }}</strong>
+                        </div>
+                        {% empty %}
+                        <p style="text-align: center; color: #666;">No hay tareas registradas</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Análisis de Pausas -->
+        <div class="card" style="margin-top: 2rem;">
+            <div class="card-header">
+                <h3 style="margin: 0;"><i class="fa-solid fa-pause-circle me-2"></i> Análisis de Pausas (Última Semana)</h3>
+                <small>Desde {{ inicio_semana|date:"d/m/Y" }} hasta {{ hoy|date:"d/m/Y" }}</small>
+            </div>
+            <div class="card-body">
+                {% if motivos_pausa %}
+                <!-- Gráfico de Barras -->
+                <div class="chart-container" style="position: relative; height: 40vh; width: 100%;">
+                    <canvas id="chartPausas"></canvas>
+                </div>
+
+                <!-- Tabla existente -->
+                <table class="table mt-4">
+                    <thead>
+                        <tr>
+                            <th>Motivo de Pausa</th>
+                            <th>Cantidad</th>
+                            <th>Duración Promedio</th>
+                            <th>Porcentaje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for motivo in motivos_pausa %}
+                        <tr>
+                            <td>{{ motivo.motivo }}</td>
+                            <td>{{ motivo.total }}</td>
+                            <td>{{ motivo.duracion_promedio|floatformat:1 }} min</td>
+                            <td>
+                                {% with total_pausas=motivos_pausa.0.total|default:1 %}
+                                {% widthratio motivo.total total_pausas 100 as percentage %}
+                                {{ percentage }}%
+                                <div style="background: #e9ecef; height: 8px; border-radius: 4px; margin-top: 4px;">
+                                    <div style="background: var(--pepsico-blue); height: 100%; width: {{ percentage }}%; border-radius: 4px;"></div>
+                                </div>
+                                {% endwith %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="text-align: center; color: #666; padding: 2rem;">
+                    No hay pausas registradas en la última semana.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Flujo de Vehículos - Gestión Operacional -->
+        <div class="card" style="margin-top: 2rem;">
+            <div class="card-header">
+                <h3 style="margin: 0;"><i class="fa-solid fa-route me-2"></i> Flujo de Vehículos (Hoy)</h3>
+                <small>Seguimiento de Ingreso → Reparación → Salida</small>
+            </div>
+            <div class="card-body">
+                <div class="grid grid-3" style="gap: 1rem;">
+                    <div class="flow-card ingreso">
+                        <div class="flow-icon"><i class="fas fa-sign-in-alt"></i></div>
+                        <div class="flow-value">{{ vehiculos_ingreso_hoy|default:0 }}</div>
+                        <div class="flow-label">Ingresos Hoy</div>
+                    </div>
+                    <div class="flow-card proceso">
+                        <div class="flow-icon"><i class="fas fa-tools"></i></div>
+                        <div class="flow-value">{{ vehiculos_en_proceso|default:0 }}</div>
+                        <div class="flow-label">En Proceso</div>
+                    </div>
+                    <div class="flow-card salida">
+                        <div class="flow-icon"><i class="fas fa-sign-out-alt"></i></div>
+                        <div class="flow-value">{{ vehiculos_salida_hoy|default:0 }}</div>
+                        <div class="flow-label">Salidas Hoy</div>
+                    </div>
+                </div>
+                <!-- Listas de Ingresos y Salidas de Hoy -->
+                <div class="grid grid-2" style="gap: 1rem; margin-top: 1rem;">
+                    <div class="card">
+                        <div class="card-header"><h4 style="margin:0;">📥 Ingresos Hoy</h4></div>
+                        <div class="card-body">
+                            {% if ingresos_hoy %}
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Patente</th>
+                                        <th>Guardia</th>
+                                        <th>Hora</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for v in ingresos_hoy %}
+                                    <tr>
+                                        <td><strong>{{ v.patente }}</strong></td>
+                                        <td>{{ v.guardia_ingreso.get_full_name|default:v.guardia_ingreso.username }}</td>
+                                        <td>{{ v.fecha_ingreso|date:"H:i" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <p style="text-align:center; color:#666;">No hubo ingresos registrados hoy.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h4 style="margin:0;">📤 Salidas Hoy</h4></div>
+                        <div class="card-body">
+                            {% if salidas_hoy %}
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Patente</th>
+                                        <th>Mecánico</th>
+                                        <th>Hora</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for v in salidas_hoy %}
+                                    <tr>
+                                        <td><strong>{{ v.patente }}</strong></td>
+                                        <td>{% if v.mecanico_asignado %}{{ v.mecanico_asignado.get_full_name|default:v.mecanico_asignado.username }}{% else %}-{% endif %}</td>
+                                        <td>{{ v.fecha_salida|date:"H:i" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% else %}
+                            <p style="text-align:center; color:#666;">No hubo salidas registradas hoy.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tabla detallada del flujo -->
+                <div style="margin-top: 1.5rem;">
+                    <h4><i class="fas fa-list me-2"></i>Estado Actual de Vehículos</h4>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Patente</th>
+                                <th>Estado</th>
+                                <th>Tiempo en Estado</th>
+                                <th>Próxima Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for vehiculo in vehiculos_flujo %}
+                            <tr>
+                                <td><strong>{{ vehiculo.patente }}</strong></td>
+                                <td>
+                                    <span class="status-badge status-{{ vehiculo.estado }}">
+                                        {{ vehiculo.get_estado_display }}
+                                    </span>
+                                    <div style="font-size: 0.85rem; color:#666; margin-top:0.25rem;">
+                                        {% if vehiculo.mecanico %}👷 {{ vehiculo.mecanico }}{% endif %}
+                                        {% if vehiculo.guardia %}{% if vehiculo.mecanico %} • {% endif %}🛡 {{ vehiculo.guardia }}{% endif %}
+                                        {% if vehiculo.fecha_ingreso %}{% if vehiculo.mecanico or vehiculo.guardia %} • {% endif %}🕒 {{ vehiculo.fecha_ingreso|date:"d/m/Y H:i" }}{% endif %}
+                                    </div>
+                                </td>
+                                <td>{{ vehiculo.tiempo_en_estado|default:"--" }}</td>
+                                <td>{{ vehiculo.proxima_accion|default:"Sin definir" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: #666;">
+                                    No hay vehículos en proceso actualmente
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gestión de Documentos Críticos -->
+        <div class="card" style="margin-top: 2rem;">
+            <div class="card-header">
+                <h3 style="margin: 0;"><i class="fa-solid fa-file-medical me-2"></i> Estado de Documentos Críticos</h3>
+                <small>Permisos de Circulación, Seguros, Revisión Técnica y Siniestros</small>
+            </div>
+            <div class="card-body">
+                <div class="grid grid-4" style="gap: 1rem; margin-bottom: 1.5rem;">
+                    <div class="doc-status-card soap">
+                        <div class="doc-icon"><i class="fas fa-shield-alt"></i></div>
+                        <div class="doc-value">{{ documentos_soap_vigentes|default:0 }}/{{ total_vehiculos }}</div>
+                        <div class="doc-label">SOAP Vigentes</div>
+                        <div class="doc-percentage">
+                            {% widthratio documentos_soap_vigentes total_vehiculos 100 as soap_percentage %}
+                            {{ soap_percentage|default:0 }}%
+                        </div>
+                    </div>
+                    <div class="doc-status-card revision">
+                        <div class="doc-icon"><i class="fas fa-clipboard-check"></i></div>
+                        <div class="doc-value">{{ revision_tecnica_vigente|default:0 }}/{{ total_vehiculos }}</div>
+                        <div class="doc-label">Rev. Técnica OK</div>
+                        <div class="doc-percentage">
+                            {% widthratio revision_tecnica_vigente total_vehiculos 100 as rev_percentage %}
+                            {{ rev_percentage|default:0 }}%
+                        </div>
+                    </div>
+                    <div class="doc-status-card siniestros">
+                        <div class="doc-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div class="doc-value">{{ siniestros_pendientes|default:0 }}</div>
+                        <div class="doc-label">Siniestros Pendientes</div>
+                        <div class="doc-percentage">Gestión Activa</div>
+                    </div>
+                    <div class="doc-status-card fotos">
+                        <div class="doc-icon"><i class="fas fa-camera"></i></div>
+                        <div class="doc-value">{{ vehiculos_con_fotos|default:0 }}/{{ total_vehiculos }}</div>
+                        <div class="doc-label">Con Fotos</div>
+                        <div class="doc-percentage">
+                            {% widthratio vehiculos_con_fotos total_vehiculos 100 as foto_percentage %}
+                            {{ foto_percentage|default:0 }}%
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lista de documentos por vencer -->
+                <div>
+                    <h4><i class="fas fa-clock me-2"></i>Documentos por Vencer (30 días)</h4>
+                    {% if documentos_por_vencer %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Patente</th>
+                                <th>Documento</th>
+                                <th>Vence</th>
+                                <th>Días Restantes</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for doc in documentos_por_vencer %}
+                            <tr>
+                                <td><strong>{{ doc.vehiculo.patente }}</strong></td>
+                                <td>{{ doc.tipo_documento }}</td>
+                                <td>{{ doc.fecha_vencimiento|date:"d/m/Y" }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if doc.dias_restantes <= 7 %}bg-danger
+                                        {% elif doc.dias_restantes <= 15 %}bg-warning
+                                        {% else %}bg-info{% endif %}">
+                                        {{ doc.dias_restantes }} días
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if doc.dias_restantes <= 0 %}
+                                        <span class="badge bg-danger">Vencido</span>
+                                    {% elif doc.dias_restantes <= 7 %}
+                                        <span class="badge bg-warning">Crítico</span>
+                                    {% else %}
+                                        <span class="badge bg-success">OK</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p style="text-align: center; color: #666; padding: 1rem;">
+                        ✅ Todos los documentos están vigentes
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Productividad por Mecánico -->
+        <div class="card" style="margin-top: 2rem;">
+            <div class="card-header">
+                <h3 style="margin: 0;"><i class="fa-solid fa-user-wrench me-2"></i> Productividad por Mecánico</h3>
+                <small>Cantidad de trabajos cerrados vs. planificados y tipos de mantención</small>
+            </div>
+            <div class="card-body">
+                {% if productividad_mecanicos %}
+                <table class="table mt-4">
+                    <thead>
+                        <tr>
+                            <th>Mecánico</th>
+                            <th>Tareas Completadas</th>
+                            <th>Tareas Totales</th>
+                            <th>Eficiencia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mecanico in productividad_mecanicos %}
+                        <tr>
+                            <td>
+                                {% if mecanico.first_name or mecanico.last_name %}
+                                    {{ mecanico.first_name }} {{ mecanico.last_name }}
+                                {% else %}
+                                    {{ mecanico.username }}
+                                {% endif %}
+                            </td>
+                            <td>{{ mecanico.tareas_completadas }}</td>
+                            <td>{{ mecanico.tareas_totales }}</td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span>{{ mecanico.eficiencia|floatformat:1 }}%</span>
+                                    <div style="background: #e9ecef; height: 8px; border-radius: 4px; flex: 1;">
+                                        <div style="background: 
+                                            {% if mecanico.eficiencia >= 80 %}#28a745
+                                            {% elif mecanico.eficiencia >= 60 %}#ffc107
+                                            {% else %}#dc3545
+                                            {% endif %}; 
+                                            height: 100%; width: {% if mecanico.eficiencia > 100 %}100{% else %}{{ mecanico.eficiencia }}{% endif %}%; border-radius: 4px;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="text-align: center; color: #666; padding: 2rem;">
+                    No hay datos de productividad disponibles.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estilos CSS para las nuevas métricas -->
+<style>
+    /* Métricas con prioridad */
+    .metric-card.priority-high {
+        border-left: 4px solid #dc3545;
+        background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+    }
+    .metric-card.priority-medium {
+        border-left: 4px solid #ffc107;
+        background: linear-gradient(135deg, #fffbf0 0%, #ffffff 100%);
+    }
+    .metric-card.productivity {
+        border-left: 4px solid #28a745;
+        background: linear-gradient(135deg, #f8fff8 0%, #ffffff 100%);
+    }
+    .metric-card.cost-control {
+        border-left: 4px solid #17a2b8;
+        background: linear-gradient(135deg, #f0faff 0%, #ffffff 100%);
+    }
+    .metric-card.inventory {
+        border-left: 4px solid #fd7e14;
+        background: linear-gradient(135deg, #fff8f0 0%, #ffffff 100%);
+    }
+    .metric-card.traceability {
+        border-left: 4px solid #6f42c1;
+        background: linear-gradient(135deg, #f8f5ff 0%, #ffffff 100%);
+    }
+
+    .metric-subtitle {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 4px;
+        font-style: italic;
+    }
+
+    /* Tarjetas de flujo */
+    .flow-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+    .flow-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .flow-card.ingreso {
+        border-top: 4px solid #28a745;
+    }
+    .flow-card.proceso {
+        border-top: 4px solid #ffc107;
+    }
+    .flow-card.salida {
+        border-top: 4px solid #17a2b8;
+    }
+    .flow-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        color: #6c757d;
+    }
+    .flow-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #495057;
+        line-height: 1;
+    }
+    .flow-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+
+    /* Tarjetas de estado de documentos */
+    .doc-status-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+    .doc-status-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .doc-status-card.soap {
+        border-top: 4px solid #007bff;
+    }
+    .doc-status-card.revision {
+        border-top: 4px solid #28a745;
+    }
+    .doc-status-card.siniestros {
+        border-top: 4px solid #dc3545;
+    }
+    .doc-status-card.fotos {
+        border-top: 4px solid #6f42c1;
+    }
+    .doc-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        color: #6c757d;
+    }
+    .doc-value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: #495057;
+        line-height: 1;
+    }
+    .doc-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin: 0.5rem 0;
+    }
+    .doc-percentage {
+        font-size: 0.8rem;
+        color: #28a745;
+        font-weight: 600;
+    }
+
+    /* Grids responsivos */
+    .grid {
+        display: grid;
+        gap: 1rem;
+    }
+    .grid-4 {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+    .grid-3 {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+    .grid-2 {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+
+    /* Responsive para móviles */
+    @media (max-width: 768px) {
+        .grid-4, .grid-3, .grid-2 {
+            grid-template-columns: 1fr;
+        }
+        .flow-card, .doc-status-card {
+            padding: 1rem;
+        }
+        .flow-value, .doc-value {
+            font-size: 1.8rem;
+        }
+    }
+</style>
+
+<!-- Script centralizado para todos los gráficos -->
+<script>
+    // Función para crear un gráfico de Chart.js
+    function createChart(canvasId, type, data, options = {}) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        return new Chart(ctx, {
+            type: type,
+             data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                ...options
+            }
+        });
+    }
+
+    // Datos desde el contexto de Django
+    const labelsVehiculos = [
+        {% for item in vehiculos_por_estado %}
+            "{{ item.estado|title }}",
+        {% endfor %}
+    ];
+    const dataVehiculos = [
+        {% for item in vehiculos_por_estado %}
+            {{ item.total }},
+        {% endfor %}
+    ];
+
+    const labelsTareas = [
+        {% for item in tareas_por_prioridad %}
+            "{{ item.prioridad|title }}",
+        {% endfor %}
+    ];
+    const dataTareas = [
+        {% for item in tareas_por_prioridad %}
+            {{ item.total }},
+        {% endfor %}
+    ];
+
+    const labelsPausas = [
+        {% for motivo in motivos_pausa %}
+            "{{ motivo.motivo }}",
+        {% endfor %}
+    ];
+    const dataPausas = [
+        {% for motivo in motivos_pausa %}
+            {{ motivo.duracion_promedio|floatformat:1 }},
+        {% endfor %}
+    ];
+
+    const labelsMecanicos = [
+        {% for mecanico in productividad_mecanicos %}
+            "{{ mecanico.first_name|default:mecanico.username }} {{ mecanico.last_name|default:'' }}",
+        {% endfor %}
+    ];
+    const dataMecanicos = [
+        {% for mecanico in productividad_mecanicos %}
+            {{ mecanico.eficiencia|floatformat:2 }},
+        {% endfor %}
+    ];
+
+    // Paletas de colores personalizadas
+    const colorPaletteVehiculos = [
+        'rgba(0, 75, 147, 0.8)', // Azul PepsiCo
+        'rgba(211, 45, 39, 0.8)', // Rojo PepsiCo
+        'rgba(0, 163, 224, 0.8)', // Azul Claro PepsiCo
+        'rgba(255, 205, 86, 0.8)', // Amarillo
+        'rgba(75, 192, 192, 0.8)', // Verde Azulado
+        'rgba(153, 102, 255, 0.8)', // Púrpura
+    ];
+
+    const colorPaletteTareas = [
+        'rgba(255, 99, 132, 0.8)', // Rojo
+        'rgba(54, 162, 235, 0.8)', // Azul
+        'rgba(255, 205, 86, 0.8)', // Amarillo
+        'rgba(75, 192, 192, 0.8)', // Verde Azulado
+        'rgba(153, 102, 255, 0.8)', // Púrpura
+        'rgba(255, 159, 64, 0.8)', // Naranja
+    ];
+
+    const colorPausas = 'rgba(75, 192, 192, 0.8)'; // Verde Azulado
+    const colorEficiencia = 'rgba(75, 192, 192, 0.8)'; // Verde Azulado
+
+    // Crear todos los gráficos después de que la página cargue
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gráfico de Vehículos por Estado (Dona)
+        createChart('chartVehiculosEstado', 'doughnut', {
+            labels: labelsVehiculos,
+            datasets: [{
+                data: dataVehiculos,
+                backgroundColor: colorPaletteVehiculos,
+                hoverOffset: 4
+            }]
+        }, {
+            plugins: {
+                title: { display: true, text: 'Distribución de Vehículos por Estado' }
+            }
+        });
+
+        // Gráfico de Tareas por Prioridad (Dona)
+        createChart('chartTareasPrioridad', 'doughnut', {
+            labels: labelsTareas,
+            datasets: [{
+                data: dataTareas,
+                backgroundColor: colorPaletteTareas,
+                hoverOffset: 4
+            }]
+        }, {
+            plugins: {
+                title: { display: true, text: 'Distribución de Tareas por Prioridad' }
+            }
+        });
+
+        // Gráfico de Pausas (Barras Horizontales)
+        createChart('chartPausas', 'bar', {
+            labels: labelsPausas,
+            datasets: [{
+                label: 'Duración Promedio (min)',
+                data: dataPausas,
+                backgroundColor: colorPausas,
+                borderColor: colorPausas,
+                borderWidth: 1
+            }]
+        }, {
+            indexAxis: 'y',
+            scales: { x: { beginAtZero: true } },
+            plugins: { title: { display: true, text: 'Duración Promedio de Pausas por Motivo' } }
+        });
+
+        // Gráfico de Eficiencia (Barras Horizontales)
+        createChart('chartEficiencia', 'bar', {
+            labels: labelsMecanicos,
+            datasets: [{
+                label: 'Eficiencia (%)',
+                data: dataMecanicos,
+                backgroundColor: colorEficiencia,
+                borderColor: colorEficiencia,
+                borderWidth: 1
+            }]
+        }, {
+            indexAxis: 'y',
+            scales: { x: { beginAtZero: true, max: 100 } },
+            plugins: { title: { display: true, text: 'Eficiencia por Mecánico (%)' } }
+        });
+    });
+</script>
+{% endblock %}

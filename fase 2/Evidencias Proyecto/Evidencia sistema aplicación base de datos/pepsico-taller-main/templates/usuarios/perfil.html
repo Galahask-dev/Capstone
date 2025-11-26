@@ -1,0 +1,667 @@
+<!-- templates/usuarios/perfil.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - PepsiCo Taller</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0056b3;
+            --primary-dark: #004494;
+            --secondary: #6c757d;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --success: #28a745;
+            --danger: #dc3545;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            color: #333;
+        }
+
+        .profile-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .profile-header {
+            background: linear-gradient(90deg, rgba(0,86,179,1) 0%, rgba(0,68,148,1) 100%);
+            color: white;
+            padding: 1.25rem 1.5rem;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 6px 26px rgba(2,6,23,0.12);
+            gap: 1rem;
+        }
+
+        .profile-header h1 {
+            font-weight: 700;
+            font-size: 1.4rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            letter-spacing: -0.2px;
+        }
+
+        .back-link {
+            color: rgba(255, 255, 255, 0.95);
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.45rem 0.85rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            transition: all 0.18s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+
+        .back-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.25);
+            text-decoration: none;
+        }
+
+        .profile-body {
+            display: grid;
+            grid-template-columns: 1fr 420px;
+            gap: 2rem;
+            padding: 1.75rem;
+            background: white;
+            border-radius: 0 0 16px 16px;
+            box-shadow: 0 10px 40px rgba(2,6,23,0.06);
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .profile-body {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 1.6rem;
+            box-shadow: 0 6px 20px rgba(2,6,23,0.04);
+            border: 1px solid #f0f2f5;
+            transition: transform 0.22s ease, box-shadow 0.22s ease;
+        }
+
+        .section-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .section-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.4rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        /* Inputs inside the profile form */
+        .section-card input[type="text"],
+        .section-card input[type="email"],
+        .section-card input[type="tel"],
+        .section-card select,
+        .section-card textarea {
+            width: 100%;
+            border: 1px solid #e6e9ee;
+            border-radius: 10px;
+            padding: 0.75rem 0.9rem;
+            font-size: 0.98rem;
+            background: #fff;
+            transition: box-shadow .18s ease, border-color .18s ease;
+        }
+        
+        /* Campo deshabilitado con cursor bloqueado */
+        .section-card select:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .section-card input:focus, .section-card select:focus, .section-card textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 4px 18px rgba(0,86,179,0.08);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(0, 86, 179, 0.12);
+            outline: none;
+        }
+
+        .btn-save {
+            background: linear-gradient(to right, var(--success), #218838);
+            border: none;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 10px;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+            letter-spacing: 0.25px;
+            box-shadow: 0 6px 18px rgba(40, 167, 69, 0.12);
+            color: white;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-cancel {
+            background: linear-gradient(to right, #e04b4b, #c82333);
+            border: none;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 10px;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+            letter-spacing: 0.25px;
+            margin-top: 0;
+            color: white;
+            box-shadow: 0 6px 18px rgba(200, 50, 50, 0.10);
+        }
+
+        .btn-cancel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(220, 53, 69, 0.3);
+        }
+
+        /* Foto de perfil */
+        .profile-avatar {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: linear-gradient(180deg,#ffffff,#f6f8fb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.2rem;
+            font-size: 2.6rem;
+            color: var(--primary-dark);
+            border: 4px solid var(--primary);
+            box-shadow: 0 10px 30px rgba(0,86,179,0.15);
+            transition: transform 0.16s ease;
+            overflow: hidden;
+        }
+
+        .profile-avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 35px rgba(0,86,179,0.25);
+        }
+
+        /* Contenedor de subida de foto */
+        .photo-upload-container {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px dashed #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .photo-upload-container:hover {
+            border-color: var(--primary);
+            background: #f0f4f8;
+        }
+
+        .photo-preview-box {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            flex-shrink: 0;
+        }
+
+        .preview-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+            color: #6c757d;
+            font-size: 2rem;
+        }
+
+        .preview-placeholder span {
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .preview-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,86,179,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .preview-overlay span {
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .photo-preview-box:hover .preview-overlay {
+            opacity: 1;
+        }
+
+        .photo-upload-info {
+            flex: 1;
+        }
+
+        .photo-upload-info input[type="file"] {
+            font-size: 0.9rem;
+            padding: 0.5rem;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .photo-upload-info input[type="file"]:hover {
+            border-color: var(--primary);
+        }
+
+        /* Estadísticas */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0.3rem 0;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .efficiency-bar {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin: 0.8rem 0;
+            overflow: hidden;
+        }
+
+        .efficiency-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--success), #218838);
+            border-radius: 4px;
+            transition: width 1s ease-in-out;
+        }
+
+        .efficiency-text {
+            font-weight: 700;
+            color: var(--success);
+            font-size: 1.1rem;
+        }
+
+        /* Seguridad */
+        .security-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .security-label {
+            font-weight: 500;
+            color: #444;
+        }
+
+        .security-value {
+            font-weight: 500;
+            color: var(--primary);
+        }
+
+        .alert {
+            border-radius: 12px;
+            margin-bottom: 1.4rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .profile-body { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 576px) {
+            .profile-header {
+                flex-direction: column;
+                gap: 0.75rem;
+                text-align: center;
+            }
+            .stats-grid { grid-template-columns: 1fr; }
+            .section-card { padding: 1.2rem; }
+            .btn-save, .btn-cancel { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <div class="profile-header">
+            <h1><i class="fas fa-user-circle me-2"></i>Mi Perfil Corporativo</h1>
+            {% if user.rol == 'mecanico' %}
+                <a href="{% url 'dashboard_mecanico' %}" class="back-link">
+                    <i class="fas fa-arrow-left me-1"></i>Volver al Dashboard
+                </a>
+            {% elif user.rol == 'chofer' %}
+                <a href="{% url 'dashboard_chofer' %}" class="back-link">
+                    <i class="fas fa-arrow-left me-1"></i>Volver al Dashboard
+                </a>
+            {% elif user.rol == 'guardia' %}
+                <a href="{% url 'dashboard_guardia' %}" class="back-link">
+                    <i class="fas fa-arrow-left me-1"></i>Volver al Dashboard
+                </a>
+            {% elif user.rol == 'ehs' %}
+                <a href="{% url 'dashboard_ehs' %}" class="back-link">
+                    <i class="fas fa-arrow-left me-1"></i>Volver al Dashboard
+                </a>
+            {% else %}
+                <a href="{% url 'clinica_dashboard' %}" class="back-link">
+                    <i class="fas fa-arrow-left me-1"></i>Volver al Dashboard
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="profile-body">
+            <!-- Información Personal -->
+            <div class="section-card">
+                <h2 class="section-title"><i class="fas fa-user-edit me-2"></i>Editar Información</h2>
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                            <i class="fas fa-signature"></i> Nombre *
+                        </label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="text-danger mt-1">{{ form.first_name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                            <i class="fas fa-signature"></i> Apellido *
+                        </label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="text-danger mt-1">{{ form.last_name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">
+                            <i class="fas fa-envelope"></i> Correo Corporativo *
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger mt-1">{{ form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.telefono.id_for_label }}" class="form-label">
+                            <i class="fas fa-phone"></i> Teléfono
+                        </label>
+                        {{ form.telefono }}
+                        {% if form.telefono.errors %}
+                            <div class="text-danger mt-1">{{ form.telefono.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.foto_perfil.id_for_label }}" class="form-label">
+                            <i class="fas fa-camera"></i> Foto de Perfil
+                        </label>
+                        <div class="photo-upload-container">
+                            <div class="photo-preview-box">
+                                {% if user.foto_perfil %}
+                                    <img src="{{ user.foto_perfil.url }}" alt="Vista previa" class="preview-image" id="photoPreview">
+                                    <div class="preview-overlay">
+                                        <i class="fas fa-camera"></i>
+                                        <span>Cambiar foto</span>
+                                    </div>
+                                {% else %}
+                                    <div class="preview-placeholder" id="photoPreview">
+                                        <i class="fas fa-user-circle"></i>
+                                        <span>Sin foto</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="photo-upload-info">
+                                {{ form.foto_perfil }}
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Formatos: JPG, PNG. Tamaño máximo: 5MB
+                                </small>
+                                {% if form.foto_perfil.errors %}
+                                    <div class="text-danger mt-2">{{ form.foto_perfil.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.rol.id_for_label }}" class="form-label">
+                            <i class="fas fa-briefcase"></i> Rol en el Taller *
+                        </label>
+                        {{ form.rol }}
+                        {% if form.rol.errors %}
+                            <div class="text-danger mt-1">{{ form.rol.errors }}</div>
+                        {% endif %}
+                        <div class="text-muted mt-1" style="font-size: 0.85rem;">
+                            <i class="fas fa-info-circle me-1"></i> Para cambios de rol, contacta al administrador.
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-3 action-row">
+                        <button type="submit" class="btn btn-save flex-fill">
+                            <i class="fas fa-save me-2"></i>Guardar Cambios
+                        </button>
+                        {% if user.rol == 'mecanico' %}
+                            <a href="{% url 'dashboard_mecanico' %}" class="btn btn-cancel flex-fill">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                        {% elif user.rol == 'chofer' %}
+                            <a href="{% url 'dashboard_chofer' %}" class="btn btn-cancel flex-fill">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                        {% elif user.rol == 'guardia' %}
+                            <a href="{% url 'dashboard_guardia' %}" class="btn btn-cancel flex-fill">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                        {% elif user.rol == 'ehs' %}
+                            <a href="{% url 'dashboard_ehs' %}" class="btn btn-cancel flex-fill">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                        {% else %}
+                            <a href="{% url 'clinica_dashboard' %}" class="btn btn-cancel flex-fill">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+
+            <!-- Información de Cuenta y Estadísticas -->
+            <div class="section-card">
+                <div class="profile-avatar" style="{% if user.foto_perfil %}background: none;{% endif %}">
+                    {% if user.foto_perfil %}
+                        <img src="{{ user.foto_perfil.url }}" alt="Foto de perfil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                    {% else %}
+                        <i class="fas fa-user"></i>
+                    {% endif %}
+                </div>
+                <h2 class="section-title"><i class="fas fa-chart-pie me-2"></i>Mi Desempeño</h2>
+                
+                <!-- Estadísticas del Mecánico -->
+                <div class="text-center mb-4">
+                    <div class="stat-value">{{ datos_especificos.tareas_totales|default:0 }}</div>
+                    <div class="stat-label">Tareas Asignadas</div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ datos_especificos.tareas_completadas|default:0 }}</div>
+                        <div class="stat-label">Completadas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ datos_especificos.tareas_en_proceso|default:0 }}</div>
+                        <div class="stat-label">En Proceso</div>
+                    </div>
+                </div>
+
+                <!-- Eficiencia -->
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="stat-label">Eficiencia</span>
+                        <span class="efficiency-text">{{ datos_especificos.eficiencia|floatformat:1|default:0 }}%</span>
+                    </div>
+                    <div class="efficiency-bar">
+                        <div class="efficiency-fill" style="width: {{ datos_especificos.eficiencia|default:0 }}%;"></div>
+                    </div>
+                </div>
+
+                <!-- Información de Cuenta -->
+                <h3 class="section-title mt-4" style="font-size: 1.1rem;"><i class="fas fa-shield-alt me-2"></i>Seguridad de Cuenta</h3>
+                <div class="security-item">
+                    <span class="security-label">Usuario:</span>
+                    <span class="security-value">{{ user.username }}</span>
+                </div>
+                <div class="security-item">
+                    <span class="security-label">Registrado:</span>
+                    <span class="security-value">{{ user.date_joined|date:"d/m/Y" }}</span>
+                </div>
+                <div class="security-item">
+                    <span class="security-label">Último acceso:</span>
+                    <span class="security-value">
+                        {% if user.last_login %}
+                            {{ user.last_login|date:"d/m/Y H:i" }}
+                        {% else %}
+                            Nunca
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="security-item">
+                    <span class="security-label">Estado:</span>
+                    <span class="security-value">
+                        {% if user.is_active %}
+                            <span class="badge bg-success">Activo</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactivo</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Vista previa de imagen al seleccionar archivo
+        const photoInput = document.querySelector('input[type="file"]');
+        if (photoInput) {
+            photoInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const previewBox = document.querySelector('.photo-preview-box');
+                        previewBox.innerHTML = `
+                            <img src="${event.target.result}" alt="Vista previa" class="preview-image">
+                            <div class="preview-overlay">
+                                <i class="fas fa-camera"></i>
+                                <span>Cambiar foto</span>
+                            </div>
+                        `;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
