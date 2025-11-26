@@ -1,0 +1,173 @@
+<!-- templates/usuarios/dashboard_mecanico.html -->
+{% extends 'base.html' %}
+
+{% block title %}Mi Dashboard - Mecánico - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 style="margin: 0;">🛠️ Mi Dashboard - Mecánico</h2>
+        <a href="{% url 'perfil_usuario' %}" class="btn btn-primary">👤 Mi Perfil</a>
+    </div>
+    <div class="card-body">
+        <!-- Estadísticas Rápidas -->
+        <div class="grid grid-4">
+            <div class="card metric-card">
+                <div class="metric-value">{{ estadisticas.total_tareas }}</div>
+                <div class="metric-label">Total Tareas</div>
+            </div>
+            <div class="card metric-card">
+                <div class="metric-value" style="color: #17a2b8;">{{ estadisticas.tareas_pendientes }}</div>
+                <div class="metric-label">Pendientes</div>
+            </div>
+            <div class="card metric-card">
+                <div class="metric-value" style="color: #28a745;">{{ estadisticas.tareas_proceso }}</div>
+                <div class="metric-label">En Proceso</div>
+            </div>
+            <div class="card metric-card">
+                <div class="metric-value" style="color: #ffc107;">{{ estadisticas.tareas_completadas }}</div>
+                <div class="metric-label">Completadas</div>
+            </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top: 2rem; gap: 2rem;">
+            <!-- Tareas Urgentes -->
+            {% if tareas_urgentes %}
+            <div class="card">
+                <div class="card-header" style="background: #f8d7da; color: #721c24;">
+                    <h3 style="margin: 0;">🚨 Tareas Urgentes</h3>
+                </div>
+                <div class="card-body">
+                    {% for tarea in tareas_urgentes %}
+                    <div style="padding: 1rem; border-bottom: 1px solid #eee;">
+                        <div style="display: flex; justify-content: between; align-items: start;">
+                            <h4 style="margin: 0; color: #dc3545;">{{ tarea.titulo }}</h4>
+                            <span class="status-badge priority-alta">Alta</span>
+                        </div>
+                        <p style="margin: 0.5rem 0; color: #666;">
+                            🚗 {{ tarea.vehiculo.patente }} - {{ tarea.vehiculo.marca }} {{ tarea.vehiculo.modelo }}
+                        </p>
+                        <p style="margin: 0; font-size: 0.9rem;">
+                            {{ tarea.descripcion|truncatewords:15 }}
+                        </p>
+                        <div style="margin-top: 0.5rem;">
+                            <a href="{% url 'iniciar_tarea' tarea.id %}" class="btn btn-sm btn-success">▶️ Iniciar</a>
+                            <a href="#" class="btn btn-sm btn-primary"><i class="fa-solid fa-eye" aria-hidden="true"></i> Ver</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Pausas Activas -->
+            {% if pausas_activas %}
+            <div class="card">
+                <div class="card-header" style="background: #fff3cd; color: #856404;">
+                    <h3 style="margin: 0;">⏸️ Pausas Activas</h3>
+                </div>
+                <div class="card-body">
+                    {% for pausa in pausas_activas %}
+                    <div style="padding: 1rem; border-bottom: 1px solid #eee;">
+                        <div style="display: flex; justify-content: between; align-items: start;">
+                            <strong>{{ pausa.tarea.titulo }}</strong>
+                            <small style="color: #666;">
+                                {{ pausa.fecha_inicio|timesince }}
+                            </small>
+                        </div>
+                        <p style="margin: 0.25rem 0; color: #666;">
+                            Motivo: {{ pausa.get_motivo_display }}
+                        </p>
+                        <div style="margin-top: 0.5rem;">
+                            <a href="{% url 'reanudar_tarea' pausa.tarea.id %}" class="btn btn-sm btn-success">▶️ Reanudar</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Todas mis Tareas -->
+        <div class="card" style="margin-top: 2rem;">
+            <div class="card-header">
+                <h3 style="margin: 0;">📋 Todas mis Tareas</h3>
+                <div>
+                    <a href="{% url 'lista_tareas' %}?estado=pendiente" class="btn btn-sm btn-info">Pendientes</a>
+                    <a href="{% url 'lista_tareas' %}?estado=en_proceso" class="btn btn-sm btn-success">En Proceso</a>
+                    <a href="{% url 'lista_tareas' %}" class="btn btn-sm btn-primary">Todas</a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if tareas %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Tarea</th>
+                            <th>Vehículo</th>
+                            <th>Prioridad</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tarea in tareas|slice:":10" %}
+                        <tr>
+                            <td>
+                                <strong>{{ tarea.titulo }}</strong><br>
+                                <small style="color: #666;">{{ tarea.descripcion|truncatewords:5 }}</small>
+                            </td>
+                            <td>
+                                {{ tarea.vehiculo.patente }}<br>
+                                <small style="color: #666;">{{ tarea.vehiculo.marca }} {{ tarea.vehiculo.modelo }}</small>
+                            </td>
+                            <td>
+                                <span class="status-badge priority-{{ tarea.prioridad }}">
+                                    {{ tarea.get_prioridad_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="status-badge">
+                                    {{ tarea.get_estado_display }}
+                                </span>
+                            </td>
+                            <td>{{ tarea.fecha_creacion|date:"d/m/Y" }}</td>
+                            <td>
+                                <div style="display: flex; gap: 0.25rem; flex-wrap: wrap;">
+                                    {% if tarea.estado == 'pendiente' %}
+                                    <a href="{% url 'iniciar_tarea' tarea.id %}" class="btn btn-sm btn-success">▶️ Iniciar</a>
+                                    {% elif tarea.estado == 'en_proceso' %}
+                                    <a href="{% url 'pausar_tarea' tarea.id %}" class="btn btn-sm btn-warning">⏸️ Pausar</a>
+                                    <a href="{% url 'completar_tarea' tarea.id %}" class="btn btn-sm btn-success">✅ Completar</a>
+                                    {% elif tarea.estado == 'pausada' %}
+                                    <a href="{% url 'reanudar_tarea' tarea.id %}" class="btn btn-sm btn-success">▶️ Reanudar</a>
+                                    {% endif %}
+                                    <a href="#" class="btn btn-sm btn-primary"><i class="fa-solid fa-eye" aria-hidden="true"></i> Ver</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                {% if tareas.count > 10 %}
+                <div style="text-align: center; margin-top: 1rem;">
+                    <a href="{% url 'lista_tareas' %}" class="btn btn-primary">
+                        Ver todas las tareas ({{ tareas.count }})
+                    </a>
+                </div>
+                {% endif %}
+                
+                {% else %}
+                <div style="text-align: center; padding: 3rem; color: #666;">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">🛠️</div>
+                    <h3>No tienes tareas asignadas</h3>
+                    <p>Cuando te asignen tareas, aparecerán aquí.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

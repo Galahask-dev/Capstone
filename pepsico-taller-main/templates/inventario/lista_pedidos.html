@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Pedidos de Repuestos - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 style="margin:0;"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> Pedidos</h2>
+        <a href="{% url 'crear_pedido' %}" class="btn btn-primary"><i class="fa-solid fa-plus" aria-hidden="true"></i> Nuevo Pedido</a>
+    </div>
+    <div class="card-body">
+        {% if pedidos %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Repuesto</th>
+                    <th>Cantidad</th>
+                    <th>Proveedor</th>
+                    <th>Estado</th>
+                    <th>Solicitante</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pedidos %}
+                <tr>
+                    <td>{{ p.codigo_pedido }}</td>
+                    <td>{% if p.repuesto.nombre %}{{ p.repuesto.nombre }}{% elif p.repuesto_nombre %}{{ p.repuesto_nombre }}{% else %}-{% endif %}</td>
+                    <td>{{ p.cantidad_solicitada }}</td>
+                    <td>{{ p.proveedor }}</td>
+                    <td>{% if p.get_estado_display %}{{ p.get_estado_display }}{% else %}{{ p.estado }}{% endif %}</td>
+                    <td>
+                        {% if p.solicitante.username %}
+                            {{ p.solicitante.username }}
+                        {% elif p.solicitante_username %}
+                            {{ p.solicitante_username }}
+                        {% elif p.solicitante.id %}
+                            Usuario #{{ p.solicitante.id }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {# Construir URL de recibir: si es objeto ORM usamos p.id, si es dict usamos p.id también #}
+                        <a href="{% url 'recibir_pedido' p.id %}" class="btn btn-sm btn-success">Recibir</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align:center; padding:2rem; color:#666;">
+            <h4>No hay pedidos registrados</h4>
+            <a href="{% url 'crear_pedido' %}" class="btn btn-primary">Crear Pedido</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

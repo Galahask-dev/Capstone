@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestionar Repuestos - {{ tarea.titulo }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> Gestionar Repuestos - {{ tarea.titulo }}</h2>
+        <a href="{% url 'detalle_tarea' tarea.id %}" class="btn btn-secondary"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Volver</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">Repuestos Utilizados</div>
+                <div class="card-body">
+                    {% if repuestos_utilizados %}
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Repuesto</th>
+                                    <th>Cantidad</th>
+                                    <th>Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for mov in repuestos_utilizados %}
+                                    <tr>
+                                        <td>{{ mov.repuesto.nombre }}</td>
+                                        <td>{{ mov.cantidad }}</td>
+                                        <td>{% if mov.created_at %}{{ mov.created_at|date:"d/m/Y H:i" }}{% else %}{{ mov.fecha|default:"-" }}{% endif %}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="text-muted">No hay repuestos registrados para esta tarea.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">Agregar Repuesto</div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'gestionar_repuestos_tarea' tarea.id %}">
+                        {% csrf_token %}
+                        <div class="form-group mb-2">
+                            <label for="repuesto_id">Repuesto</label>
+                            <select id="repuesto_id" name="repuesto_id" class="form-control">
+                                {% for rep in repuestos_disponibles %}
+                                    <option value="{{ rep.id }}">{{ rep.nombre }} (Stock: {{ rep.stock_actual }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-2">
+                            <label for="cantidad">Cantidad</label>
+                            <input id="cantidad" name="cantidad" type="number" min="1" value="1" class="form-control" />
+                        </div>
+
+                        <div class="mt-3 text-end">
+                            <a href="{% url 'detalle_tarea' tarea.id %}" class="btn btn-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-success">Agregar Repuesto</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

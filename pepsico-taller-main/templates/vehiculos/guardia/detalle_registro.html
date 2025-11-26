@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Registro - {{ registro.vehiculo.patente }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div
+                    class="card-header {% if registro.tipo_movimiento == 'entrada' %}bg-success{% else %}bg-info{% endif %} text-white">
+                    <h4 class="mb-0">
+                        {% if registro.tipo_movimiento == 'entrada' %}
+                        <i class="fas fa-arrow-down"></i> Registro de Entrada
+                        {% else %}
+                        <i class="fas fa-arrow-up"></i> Registro de Salida
+                        {% endif %}
+                    </h4>
+                    <small>{{ registro.fecha_hora|date:"d/m/Y H:i:s" }}</small>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Información del Vehículo -->
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-car"></i> Información del Vehículo</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Patente:</th>
+                                    <td><strong>{{ registro.vehiculo.patente }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <th>Marca:</th>
+                                    <td>{{ registro.vehiculo.marca }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Modelo:</th>
+                                    <td>{{ registro.vehiculo.modelo }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Tipo:</th>
+                                    <td>{{ registro.vehiculo.get_tipo_vehiculo_display }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Año:</th>
+                                    <td>{{ registro.vehiculo.año }}</td>
+                                </tr>
+                                {% if registro.vehiculo.flota %}
+                                <tr>
+                                    <th>Flota:</th>
+                                    <td>{{ registro.vehiculo.flota }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+
+                        <!-- Información del Chofer -->
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-user"></i> Información del Chofer</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Nombre:</th>
+                                    <td>{{ registro.nombre_chofer }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Teléfono:</th>
+                                    <td>{{ registro.telefono_chofer|default:"No registrado" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Empresa:</th>
+                                    <td>{{ registro.empresa_chofer|default:"No registrado" }}</td>
+                                </tr>
+                            </table>
+
+                            <h5 class="mt-3"><i class="fas fa-shield-alt"></i> Información del Registro</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Guardia:</th>
+                                    <td>{{ registro.guardia.get_full_name|default:registro.guardia.username }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Fecha/Hora:</th>
+                                    <td>{{ registro.fecha_hora|date:"d/m/Y H:i:s" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Kilometraje:</th>
+                                    <td>{{ registro.kilometraje|default:"No registrado" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Observaciones -->
+                    {% if registro.observaciones %}
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <h5><i class="fas fa-clipboard"></i> Observaciones</h5>
+                            <div class="alert alert-secondary">
+                                {{ registro.observaciones|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Foto del vehículo -->
+                    {% if registro.foto_vehiculo %}
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <h5><i class="fas fa-camera"></i> Fotografía del Vehículo</h5>
+                            <div class="text-center">
+                                <img src="{{ registro.foto_vehiculo.url }}" alt="Foto del vehículo"
+                                    class="img-fluid rounded shadow" style="max-height: 500px;">
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Autorización (para salidas) -->
+                    {% if registro.tipo_movimiento == 'salida' and registro.autorizado_por %}
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <h5><i class="fas fa-check-circle"></i> Autorización</h5>
+                            <div class="alert alert-success">
+                                <strong>Autorizado por:</strong>
+                                {{ registro.autorizado_por.get_full_name|default:registro.autorizado_por.username }}
+                                ({{ registro.autorizado_por.get_rol_display }})
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'historial_acceso' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver al Historial
+                    </a>
+                    <a href="{% url 'panel_guardia' %}" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Panel de Guardia
+                    </a>
+                    <a href="{% url 'detalle_vehiculo' registro.vehiculo.id %}" class="btn btn-info">
+                        <i class="fas fa-car"></i> Ver Vehículo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

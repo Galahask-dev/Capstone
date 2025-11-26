@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}Reporte de Tiempos y Pausas - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 style="margin:0;"><i class="fa-solid fa-stopwatch" aria-hidden="true"></i> Reporte: Tiempos y Pausas</h2>
+        <a href="{% url 'dashboard_reportes' %}" class="btn btn-primary">← Volver</a>
+    </div>
+    <div class="card-body">
+        <p style="color:#666; margin-bottom:1rem;">Resumen de pausas registradas (solo pausas con fecha de fin en el período).</p>
+
+        {% if pausas_por_motivo %}
+        <!-- Gráfico de Barras -->
+        {{ grafico_pausas_labels|json_script:"grafico-pausas-labels" }}
+        {{ grafico_pausas_totales|json_script:"grafico-pausas-totales" }}
+        <div class="chart-container" style="position: relative; height:40vh; width:80vw; margin: 0 auto 2rem;">
+            <canvas id="chartPausas"></canvas>
+        </div>
+        <script>
+            const labels = JSON.parse(document.getElementById('grafico-pausas-labels').textContent);
+            const valores = JSON.parse(document.getElementById('grafico-pausas-totales').textContent).map(Number);
+            const datosGrafico = {
+                labels: labels,
+                datasets: [{
+                    label: 'Tiempo Total (minutos)',
+                    data: valores,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 205, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)',
+                    ],
+                    borderColor: [
+                        'rgb(255, 99, 132)',
+                        'rgb(54, 162, 235)',
+                        'rgb(255, 205, 86)',
+                        'rgb(75, 192, 192)',
+                        'rgb(153, 102, 255)',
+                        'rgb(255, 159, 64)',
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            const config = {
+                type: 'bar',
+                data: datosGrafico,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Tiempo Total de Pausas por Motivo'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return Number(value).toFixed(1);
+                                }
+                            },
+                            suggestedMax: (Math.max(0, ...(valores.length ? valores : [0])) || 1) * 1.25
+                        }
+                    }
+                },
+            };
+
+            // Renderizar el gráfico
+            window.onload = function() {
+                const ctx = document.getElementById('chartPausas').getContext('2d');
+                const myChart = new Chart(ctx, config);
+            };
+        </script>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Motivo</th>
+                    <th>Cantidad</th>
+                    <th>Tiempo total (min)</th>
+                    <th>Promedio (min)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for motivo, datos in pausas_por_motivo.items %}
+                <tr>
+                    <td>{{ motivo }}</td>
+                    <td>{{ datos.cantidad }}</td>
+                    <td>{{ datos.tiempo_total_minutos|floatformat:1 }}</td>
+                    <td>{{ datos.promedio_minutos|floatformat:1 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div style="margin-top:1rem;">
+            <strong>Total pausas:</strong> {{ pausas_totales }}
+        </div>
+        {% endif %}
+
+        <!-- Pausas activas (sin fecha de fin) -->
+        <div style="margin-top:2rem;">
+            <h3 style="margin:0 0 0.5rem 0;"><i class="fa-regular fa-pause-circle"></i> Pausas activas</h3>
+            {% if pausas_activas %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Vehículo</th>
+                        <th>Tarea</th>
+                        <th>Motivo</th>
+                        <th>Inicio</th>
+                        <th>Duración actual</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in pausas_activas %}
+                    <tr>
+                        <td>{{ item.pausa.tarea.vehiculo.patente }}</td>
+                        <td>#{{ item.pausa.tarea.id }} - {{ item.pausa.tarea.titulo|default:"Tarea" }}</td>
+                        <td>{{ item.pausa.get_motivo_display }}</td>
+                        <td>{{ item.pausa.fecha_inicio|date:"d/m/Y H:i" }}</td>
+                        <td>{{ item.duracion_minutos|floatformat:1 }} min</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="text-align:center; color:#666;">No hay pausas activas.</p>
+            {% endif %}
+        </div>
+
+        {% if not pausas_por_motivo and not pausas_activas %}
+        <div style="text-align:center; padding:2rem; color:#666;">
+            <div style="font-size:3rem; margin-bottom:0.5rem;"></div>
+            <p>No se encontraron pausas.</p>
+        </div>
+        {% endif %}
+    </div>
+    
+</div>
+{% endblock %}
