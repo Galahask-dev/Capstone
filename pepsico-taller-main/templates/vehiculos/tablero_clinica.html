@@ -1,0 +1,334 @@
+<!-- templates/vehiculos/tablero_clinica.html -->
+{% extends 'base.html' %}
+
+{% block title %}Tablero Clínica - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+    <h2 style="margin: 0;"><i class="fa-solid fa-road" aria-hidden="true"></i> Gestión Visual de Vehículos</h2>
+        <div>
+            <button type="button" class="btn btn-secondary" onclick="location.reload();"><i class="fa-solid fa-sync" aria-hidden="true"></i> Refrescar</button>
+            {% if user.is_superuser or user.rol == 'admin' or user.rol == 'guardia' or user.rol == 'recepcionista' or user.rol == 'chofer' %}
+            <a href="{% url 'ingreso_vehiculo' %}" class="btn btn-success"><i class="fa-solid fa-plus" aria-hidden="true"></i> Nuevo Ingreso</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- Estadísticas Rápidas -->
+        <div class="grid grid-4" style="margin-bottom: 2rem;">
+            <div class="card" style="text-align: center; padding: 1rem; background: #fff3cd;">
+                <div style="font-size: 2rem; color: #f0ad4e;"><i class="fa-solid fa-car" aria-hidden="true"></i></div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #856404;">{{ stats.ingresados.count }}</div>
+                <div style="color: #856404;">Ingresados</div>
+            </div>
+            <div class="card" style="text-align: center; padding: 1rem; background: #d1ecf1;">
+                <div style="font-size: 2rem; color: #0c5460;"><i class="fa-solid fa-stethoscope" aria-hidden="true"></i></div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #0c5460;">{{ stats.diagnostico.count }}</div>
+                <div style="color: #0c5460;">En Diagnóstico</div>
+            </div>
+            <div class="card" style="text-align: center; padding: 1rem; background: #d4edda;">
+                <div style="font-size: 2rem; color: #155724;"><i class="fa-solid fa-wrench" aria-hidden="true"></i></div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #155724;">{{ stats.reparacion.count }}</div>
+                <div style="color: #155724;">En Reparación</div>
+            </div>
+            <div class="card" style="text-align: center; padding: 1rem; background: #cce7ff;">
+                <div style="font-size: 2rem; color: #004085;"><i class="fa-solid fa-check-circle" aria-hidden="true"></i></div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #004085;">{{ stats.listos.count }}</div>
+                <div style="color: #004085;">Listos para Retiro</div>
+            </div>
+        </div>
+
+        <!-- Tablero Kanban -->
+        <div class="kanban-board" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+            
+            <!-- Columna: INGRESADOS -->
+            <div class="kanban-column">
+                <div class="kanban-header" style="background: #fff3cd; color: #856404; padding: 1rem; border-radius: 8px 8px 0 0;">
+                    <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fa-solid fa-car" style="color: #f0ad4e; font-size:0.9rem;" aria-hidden="true"></i> Ingresados
+                        <span class="badge" style="background: #856404; color: white; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">
+                            {{ ingresados|length }}
+                        </span>
+                    </h3>
+                </div>
+                <div class="kanban-cards" style="background: #f8f9fa; padding: 1rem; border-radius: 0 0 8px 8px; min-height: 400px; max-height: 600px; overflow-y: auto;">
+                    {% for vehiculo in ingresados %}
+                    <div class="kanban-card" style="background: white; border: 1px solid #ffeaa7; border-radius: 6px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 0.5rem;">
+                            <h4 style="margin: 0; color: #856404;">{{ vehiculo.patente }}</h4>
+                            <div style="font-size: 0.8rem; color: #666;">
+                                {{ vehiculo.fecha_ingreso|timesince }}
+                            </div>
+                        </div>
+                        
+                        <p style="margin: 0.25rem 0; font-weight: 500;">
+                            {{ vehiculo.marca }} {{ vehiculo.modelo }}
+                        </p>
+                        
+                        <p style="margin: 0.25rem 0; font-size: 0.9rem; color: #666;">
+                            <i class="fa-solid fa-user" aria-hidden="true"></i> {{ vehiculo.nombre_chofer }}<br>
+                            <i class="fa-solid fa-phone" aria-hidden="true"></i> {{ vehiculo.telefono_chofer }}
+                        </p>
+                        
+                        <div style="margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px;">
+                            <p style="margin: 0; font-size: 0.8rem; color: #666;">
+                                <strong>Motivo:</strong> {{ vehiculo.motivo_ingreso|truncatewords:10 }}
+                            </p>
+                        </div>
+                        
+                        <div style="display: flex; gap: 0.25rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                            <a href="{% url 'detalle_vehiculo' vehiculo.id %}" class="btn btn-sm btn-primary"><i class="fa-solid fa-eye" aria-hidden="true"></i> Ver</a>
+                            <a href="{% url 'documentos_vehiculo' vehiculo.id %}" class="btn btn-sm btn-info"><i class="fa-solid fa-file-lines" aria-hidden="true"></i> Docs</a>
+                            
+                            {% if user.rol == 'jefe_taller' or user.rol == 'admin' %}
+                            <form method="post" action="{% url 'cambiar_estado_vehiculo' vehiculo.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="nuevo_estado" value="diagnostico">
+                                <button type="submit" class="btn btn-sm btn-warning"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Diagnóstico</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div style="text-align: center; padding: 2rem; color: #666;">
+                        <div style="font-size: 3rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-car" style="color:#f0ad4e;"></i></div>
+                        <p style="margin: 0;">No hay vehículos ingresados</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Columna: DIAGNÓSTICO -->
+            <div class="kanban-column">
+                <div class="kanban-header" style="background: #d1ecf1; color: #0c5460; padding: 1rem; border-radius: 8px 8px 0 0;">
+                    <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fa-solid fa-stethoscope" style="font-size:0.9rem;" aria-hidden="true"></i> En Diagnóstico
+                        <span class="badge" style="background: #0c5460; color: white; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">
+                            {{ diagnostico|length }}
+                        </span>
+                    </h3>
+                </div>
+                <div class="kanban-cards" style="background: #f8f9fa; padding: 1rem; border-radius: 0 0 8px 8px; min-height: 400px; max-height: 600px; overflow-y: auto;">
+                    {% for vehiculo in diagnostico %}
+                    <div class="kanban-card" style="background: white; border: 1px solid #bee5eb; border-radius: 6px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 0.5rem;">
+                            <h4 style="margin: 0; color: #0c5460;">{{ vehiculo.patente }}</h4>
+                            <div style="font-size: 0.8rem; color: #666;">
+                                {{ vehiculo.fecha_ingreso|timesince }}
+                            </div>
+                        </div>
+                        
+                        <p style="margin: 0.25rem 0; font-weight: 500;">
+                            {{ vehiculo.marca }} {{ vehiculo.modelo }}
+                        </p>
+                        
+                        <p style="margin: 0.25rem 0; font-size: 0.9rem; color: #666;">
+                            <i class="fa-solid fa-user" aria-hidden="true"></i> {{ vehiculo.nombre_chofer }}
+                        </p>
+                        
+                        {% if vehiculo.mecanico_asignado %}
+                        <p style="margin: 0.25rem 0; font-size: 0.9rem;">
+                            <i class="fa-solid fa-user-gear" aria-hidden="true"></i> {{ vehiculo.mecanico_asignado.get_full_name|default:vehiculo.mecanico_asignado.username }}
+                        </p>
+                        {% endif %}
+                        
+                        <div style="display: flex; gap: 0.25rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                            <a href="{% url 'detalle_vehiculo' vehiculo.id %}" class="btn btn-sm btn-primary"><i class="fa-solid fa-eye" aria-hidden="true"></i> Ver</a>
+                            <a href="{% url 'crear_tarea' %}?vehiculo={{ vehiculo.id }}" class="btn btn-sm btn-success"><i class="fa-solid fa-plus" aria-hidden="true"></i> Tarea</a>
+
+                            {% if user.rol == 'jefe_taller' or user.rol == 'admin' %}
+                            <form method="post" action="{% url 'cambiar_estado_vehiculo' vehiculo.id %}" style="display: inline-flex; gap: 0.25rem; align-items: center;">
+                                {% csrf_token %}
+                                <input type="hidden" name="nuevo_estado" value="reparacion">
+                                <select name="mecanico_id" class="form-control" style="height: 30px; font-size: 0.85rem;">
+                                    <option value="">Asignar mecánico…</option>
+                                    {% for m in mecanicos_activos %}
+                                        <option value="{{ m.id }}">{{ m.get_full_name|default:m.username }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-success"><i class="fa-solid fa-wrench" aria-hidden="true"></i> Reparar</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div style="text-align: center; padding: 2rem; color: #666;">
+                        <div style="font-size: 3rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-stethoscope" style="color:#0c5460;"></i></div>
+                        <p style="margin: 0;">No hay vehículos en diagnóstico</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Columna: REPARACIÓN -->
+            <div class="kanban-column">
+                <div class="kanban-header" style="background: #d4edda; color: #155724; padding: 1rem; border-radius: 8px 8px 0 0;">
+                    <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fa-solid fa-wrench" style="font-size:0.9rem;" aria-hidden="true"></i> En Reparación
+                        <span class="badge" style="background: #155724; color: white; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">
+                            {{ reparacion|length }}
+                        </span>
+                    </h3>
+                </div>
+                <div class="kanban-cards" style="background: #f8f9fa; padding: 1rem; border-radius: 0 0 8px 8px; min-height: 400px; max-height: 600px; overflow-y: auto;">
+                    {% for vehiculo in reparacion %}
+                    <div class="kanban-card" style="background: white; border: 1px solid #c3e6cb; border-radius: 6px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 0.5rem;">
+                            <h4 style="margin: 0; color: #155724;">{{ vehiculo.patente }}</h4>
+                            <div style="font-size: 0.8rem; color: #666;">
+                                {{ vehiculo.fecha_ingreso|timesince }}
+                            </div>
+                        </div>
+                        
+                        <p style="margin: 0.25rem 0; font-weight: 500;">
+                            {{ vehiculo.marca }} {{ vehiculo.modelo }}
+                        </p>
+                        
+                        {% if vehiculo.mecanico_asignado %}
+                        <p style="margin: 0.25rem 0; font-size: 0.9rem;">
+                            <i class="fa-solid fa-user-gear" aria-hidden="true"></i> {{ vehiculo.mecanico_asignado.get_full_name|default:vehiculo.mecanico_asignado.username }}
+                        </p>
+                        {% endif %}
+                        
+                        <!-- Tareas del vehículo -->
+                        {% with tareas=vehiculo.tareas.all %}
+                        {% if tareas %}
+                        <div style="margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px;">
+                            <p style="margin: 0 0 0.25rem 0; font-size: 0.8rem; font-weight: bold;">Tareas:</p>
+                            {% for tarea in tareas|slice:":3" %}
+                            <div style="display: flex; align-items: center; gap: 0.25rem; margin-bottom: 0.25rem;">
+                                <span class="status-badge" style="font-size: 0.7rem;">
+                                    {{ tarea.get_estado_display }}
+                                </span>
+                                <span style="font-size: 0.8rem;">{{ tarea.titulo|truncatewords:3 }}</span>
+                            </div>
+                            {% endfor %}
+                            {% if tareas.count > 3 %}
+                            <p style="margin: 0; font-size: 0.7rem; color: #666;">+{{ tareas.count|add:"-3" }} más</p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+                        
+                        <div style="display: flex; gap: 0.25rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                            <a href="{% url 'detalle_vehiculo' vehiculo.id %}" class="btn btn-sm btn-primary"><i class="fa-solid fa-eye" aria-hidden="true"></i> Ver</a>
+                            <a href="{% url 'lista_tareas' %}?vehiculo={{ vehiculo.id }}" class="btn btn-sm btn-info"><i class="fa-solid fa-tools" aria-hidden="true"></i> Tareas</a>
+                            
+                            {% if user.rol == 'jefe_taller' or user.rol == 'admin' or user == vehiculo.mecanico_asignado %}
+                            <form method="post" action="{% url 'cambiar_estado_vehiculo' vehiculo.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="nuevo_estado" value="listo">
+                                <button type="submit" class="btn btn-sm btn-success"><i class="fa-solid fa-check-circle" aria-hidden="true"></i> Listo</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div style="text-align: center; padding: 2rem; color: #666;">
+                        <div style="font-size: 3rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-wrench" style="color:#155724;"></i></div>
+                        <p style="margin: 0;">No hay vehículos en reparación</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Columna: LISTOS -->
+            <div class="kanban-column">
+                <div class="kanban-header" style="background: #cce7ff; color: #004085; padding: 1rem; border-radius: 8px 8px 0 0;">
+                    <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fa-solid fa-check-circle" style="font-size:0.9rem;" aria-hidden="true"></i> Listos para Retiro
+                        <span class="badge" style="background: #004085; color: white; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">
+                            {{ listos|length }}
+                        </span>
+                    </h3>
+                </div>
+                <div class="kanban-cards" style="background: #f8f9fa; padding: 1rem; border-radius: 0 0 8px 8px; min-height: 400px; max-height: 600px; overflow-y: auto;">
+                    {% for vehiculo in listos %}
+                    <div class="kanban-card" style="background: white; border: 1px solid #b3d7ff; border-radius: 6px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 0.5rem;">
+                            <h4 style="margin: 0; color: #004085;">{{ vehiculo.patente }}</h4>
+                            <div style="font-size: 0.8rem; color: #666;">
+                                Listo hace {{ vehiculo.fecha_salida|timesince }}
+                            </div>
+                        </div>
+                        
+                        <p style="margin: 0.25rem 0; font-weight: 500;">
+                            {{ vehiculo.marca }} {{ vehiculo.modelo }}
+                        </p>
+                        
+                        <p style="margin: 0.25rem 0; font-size: 0.9rem; color: #666;">
+                            <i class="fa-solid fa-user" aria-hidden="true"></i> {{ vehiculo.nombre_chofer }}<br>
+                            <i class="fa-solid fa-phone" aria-hidden="true"></i> {{ vehiculo.telefono_chofer }}
+                        </p>
+                        
+                        {% if vehiculo.mecanico_asignado %}
+                        <p style="margin: 0.25rem 0; font-size: 0.9rem;">
+                            <i class="fa-solid fa-user-gear" aria-hidden="true"></i> Reparado por: {{ vehiculo.mecanico_asignado.get_full_name|default:vehiculo.mecanico_asignado.username }}
+                        </p>
+                        {% endif %}
+                        
+                        <div style="display: flex; gap: 0.25rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                            <a href="{% url 'detalle_vehiculo' vehiculo.id %}" class="btn btn-sm btn-primary"><i class="fa-solid fa-eye" aria-hidden="true"></i> Ver</a>
+                            <a href="{% url 'documentos_vehiculo' vehiculo.id %}" class="btn btn-sm btn-info"><i class="fa-solid fa-file-lines" aria-hidden="true"></i> Docs</a>
+                            
+                            {% if user.rol == 'jefe_taller' or user.rol == 'admin' %}
+                            <form method="post" action="{% url 'cambiar_estado_vehiculo' vehiculo.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="nuevo_estado" value="entregado">
+                                <button type="submit" class="btn btn-sm btn-success"><i class="fa-solid fa-car" aria-hidden="true"></i> Entregar</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div style="text-align: center; padding: 2rem; color: #666;">
+                        <div style="font-size: 3rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-check-circle" style="color:#004085;"></i></div>
+                        <p style="margin: 0;">No hay vehículos listos</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.kanban-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.kanban-cards {
+    transition: all 0.3s ease;
+}
+
+.kanban-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kanban-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Scrollbar personalizado */
+.kanban-cards::-webkit-scrollbar {
+    width: 6px;
+}
+
+.kanban-cards::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.kanban-cards::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.kanban-cards::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+</style>
+{% endblock %}

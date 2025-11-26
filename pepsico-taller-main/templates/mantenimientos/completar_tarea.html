@@ -1,0 +1,52 @@
+<!-- templates/mantenimientos/completar_tarea.html -->
+{% extends 'base.html' %}
+
+{% block title %}Completar Tarea - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 style="margin: 0;">✅ Completar Tarea</h2>
+        <a href="{% url 'lista_tareas' %}" class="btn btn-primary">← Volver a Tareas</a>
+    </div>
+    <div class="card-body">
+        <!-- Información de la tarea -->
+        <div class="card" style="margin-bottom: 2rem; background: #f8f9fa;">
+            <div class="card-body">
+                <h4>{{ tarea.titulo }}</h4>
+                <p><strong>Vehículo:</strong> {{ tarea.vehiculo.patente }} - {{ tarea.vehiculo.marca }} {{ tarea.vehiculo.modelo }}</p>
+                <p><strong>Descripción:</strong> {{ tarea.descripcion }}</p>
+                <p><strong>Tiempo estimado:</strong> {{ tarea.tiempo_estimado }} minutos</p>
+                {% if tarea.fecha_inicio %}
+                <p><strong>Tiempo trabajado:</strong> {{ tarea.fecha_inicio|timesince }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="id_repuestos_utilizados_desc">Repuestos Utilizados *</label>
+                {{ form.repuestos_utilizados_desc }}
+                <small style="color: #666;">Describe los repuestos utilizados en esta tarea</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="id_observaciones_finales">Observaciones Finales</label>
+                {{ form.observaciones_finales }}
+                <small style="color: #666;">Observaciones sobre el trabajo realizado</small>
+            </div>
+            
+            <div style="margin-top: 2rem; text-align: center;">
+                <button type="submit" class="btn btn-success" style="padding: 0.75rem 2rem;">
+                    ✅ Marcar como Completada
+                </button>
+                <a href="{% url 'lista_tareas' %}" class="btn btn-primary" style="margin-left: 1rem;">
+                    ❌ Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

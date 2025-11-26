@@ -1,0 +1,77 @@
+<!-- templates/vehiculos/lista_taller.html -->
+{% extends 'base.html' %}
+
+{% block title %}Lista de Taller - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 style="margin: 0;"><i class="fa-solid fa-industry" aria-hidden="true"></i> Vehículos en Taller</h2>
+        <div>
+            {% if user.is_superuser or user.rol == 'admin' or user.rol == 'guardia' or user.rol == 'recepcionista' or user.rol == 'chofer' %}
+            <a href="{% url 'ingreso_vehiculo' %}" class="btn btn-success"><i class="fa-solid fa-plus" aria-hidden="true"></i> Nuevo Ingreso</a>
+            {% endif %}
+            <a href="{% url 'clinica_dashboard' %}" class="btn btn-primary"><i class="fa-solid fa-chart-bar" aria-hidden="true"></i> Dashboard</a>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if vehiculos %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Patente</th>
+                    <th>Vehículo</th>
+                    <th>Chofer</th>
+                    <th>Estado</th>
+                    <th>Fecha Ingreso</th>
+                    <th>Tiempo en Taller</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vehiculo in vehiculos %}
+                <tr>
+                    <td><strong>{{ vehiculo.patente }}</strong></td>
+                    <td>
+                        {{ vehiculo.marca }} {{ vehiculo.modelo }}<br>
+                        <small style="color: #666;">{{ vehiculo.get_tipo_vehiculo_display }}</small>
+                    </td>
+                    <td>
+                        {{ vehiculo.nombre_chofer }}<br>
+                        <small style="color: #666;">{{ vehiculo.telefono_chofer }}</small>
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ vehiculo.estado }}">
+                            {{ vehiculo.get_estado_display }}
+                        </span>
+                    </td>
+                    <td>{{ vehiculo.fecha_ingreso|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        {% now "Y-m-d H:i:s" as now_time %}
+                        {{ vehiculo.fecha_ingreso|timesince }}
+                    </td>
+                    <td>
+                        <a href="{% url 'detalle_vehiculo' vehiculo.id %}" class="btn btn-sm btn-primary"><i class="fa-solid fa-eye" aria-hidden="true"></i> Ver</a>
+                        {% if user.is_superuser or user.rol == 'jefe_taller' or user.rol == 'admin' %}
+                        <a href="{% url 'editar_vehiculo' vehiculo.id %}" class="btn btn-sm btn-warning"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align: center; padding: 3rem; color: #666;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;"><i class="fa-solid fa-flag-checkered" aria-hidden="true"></i></div>
+            <h3>No hay vehículos en el taller</h3>
+            <p>Todos los vehículos han sido entregados o no hay ingresos recientes.</p>
+            {% if user.is_superuser or user.rol == 'admin' or user.rol == 'guardia' or user.rol == 'recepcionista' or user.rol == 'chofer' %}
+            <a href="{% url 'ingreso_vehiculo' %}" class="btn btn-success" style="margin-top: 1rem;">
+                <i class="fa-solid fa-plus" aria-hidden="true"></i> Ingresar Primer Vehículo
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

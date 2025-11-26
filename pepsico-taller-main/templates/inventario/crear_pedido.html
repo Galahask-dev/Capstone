@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear Pedido - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 style="margin:0;"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> Crear Pedido</h2>
+        <a href="{% url 'lista_pedidos' %}" class="btn btn-secondary"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Volver</a>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="alert alert-error">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <div class="form-group">
+                {{ form.repuesto.label_tag }}
+                {{ form.repuesto }}
+                {% if form.repuesto.errors %}<div class="alert alert-error">{{ form.repuesto.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.cantidad_solicitada.label_tag }}
+                {{ form.cantidad_solicitada }}
+                {% if form.cantidad_solicitada.errors %}<div class="alert alert-error">{{ form.cantidad_solicitada.errors }}</div>{% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.proveedor.label_tag }}
+                {{ form.proveedor }}
+            </div>
+
+            <div class="form-group">
+                {{ form.costo_unitario.label_tag }}
+                {{ form.costo_unitario }}
+            </div>
+
+            <div class="form-group">
+                {{ form.fecha_estimada_entrega.label_tag }}
+                {{ form.fecha_estimada_entrega }}
+            </div>
+
+            <div class="form-group">
+                {{ form.observaciones.label_tag }}
+                {{ form.observaciones }}
+            </div>
+
+            <div style="margin-top:1rem;">
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Crear Pedido</button>
+                <a href="{% url 'lista_pedidos' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

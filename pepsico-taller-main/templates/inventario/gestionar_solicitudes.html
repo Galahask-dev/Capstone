@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestionar Solicitudes de Repuestos{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2><i class="fa-solid fa-clipboard-check"></i> Solicitudes de Repuestos - Bodega</h2>
+    </div>
+    <div class="card-body">
+
+        <!-- Solicitudes Pendientes -->
+        <h3 class="mb-3">📋 Solicitudes Pendientes ({{ solicitudes_pendientes.count }})</h3>
+
+        {% if solicitudes_pendientes %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tarea</th>
+                        <th>Repuesto</th>
+                        <th>Cantidad</th>
+                        <th>Solicitante</th>
+                        <th>Stock Actual</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for solicitud in solicitudes_pendientes %}
+                    <tr>
+                        <td>{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <a href="{% url 'detalle_tarea' solicitud.tarea.id %}">
+                                Tarea #{{ solicitud.tarea.id }} - {{ solicitud.tarea.vehiculo.patente }}
+                            </a>
+                        </td>
+                        <td>{{ solicitud.repuesto.nombre }}</td>
+                        <td><strong>{{ solicitud.cantidad }}</strong></td>
+                        <td>{{ solicitud.solicitante.get_full_name }}</td>
+                        <td>
+                            {% if solicitud.repuesto.stock_actual >= solicitud.cantidad %}
+                            <span class="badge bg-success">{{ solicitud.repuesto.stock_actual }}</span>
+                            {% else %}
+                            <span class="badge bg-danger">{{ solicitud.repuesto.stock_actual }} (Insuficiente)</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'aprobar_solicitud' solicitud.id %}" class="btn btn-sm btn-success"
+                                onclick="return confirm('¿Aprobar esta solicitud y descontar {{ solicitud.cantidad }} unidades?')">
+                                <i class="fa-solid fa-check"></i> Aprobar
+                            </a>
+                            <a href="{% url 'rechazar_solicitud' solicitud.id %}" class="btn btn-sm btn-danger"
+                                onclick="return confirm('¿Rechazar esta solicitud?')">
+                                <i class="fa-solid fa-times"></i> Rechazar
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No hay solicitudes pendientes.</p>
+        {% endif %}
+
+        <hr class="my-4">
+
+        <!-- Historial -->
+        <h3 class="mb-3">📜 Historial Reciente</h3>
+
+        {% if solicitudes_historial %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Fecha Respuesta</th>
+                        <th>Tarea</th>
+                        <th>Repuesto</th>
+                        <th>Cantidad</th>
+                        <th>Estado</th>
+                        <th>Respondido Por</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for solicitud in solicitudes_historial %}
+                    <tr>
+                        <td>{{ solicitud.fecha_respuesta|date:"d/m/Y H:i" }}</td>
+                        <td>Tarea #{{ solicitud.tarea.id }}</td>
+                        <td>{{ solicitud.repuesto.nombre }}</td>
+                        <td>{{ solicitud.cantidad }}</td>
+                        <td>
+                            {% if solicitud.estado == 'aprobada' %}
+                            <span class="status-badge status-completada">✅ Aprobada</span>
+                            {% else %}
+                            <span class="status-badge status-pausada">❌ Rechazada</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ solicitud.respuesta_por.get_full_name }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No hay historial.</p>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

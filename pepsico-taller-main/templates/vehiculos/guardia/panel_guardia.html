@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Panel de Guardia - Control de Acceso{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="fas fa-shield-alt"></i> Panel de Control - Guardia</h2>
+            <p class="text-muted">Sistema de control de acceso vehicular al taller</p>
+        </div>
+    </div>
+
+    <!-- Estadísticas del día -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-car"></i> En Taller</h5>
+                    <h2 class="mb-0">{{ total_en_taller }}</h2>
+                    <small>Vehículos actualmente</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-arrow-down"></i> Entradas Hoy</h5>
+                    <h2 class="mb-0">{{ entradas_hoy }}</h2>
+                    <small>Vehículos ingresados</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-arrow-up"></i> Salidas Hoy</h5>
+                    <h2 class="mb-0">{{ salidas_hoy }}</h2>
+                    <small>Vehículos retirados</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-check-circle"></i> Listos</h5>
+                    <h2 class="mb-0">{{ vehiculos_listos.count }}</h2>
+                    <small>Para retiro</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <a href="{% url 'registrar_entrada' %}" class="btn btn-success btn-lg btn-block">
+                <i class="fas fa-sign-in-alt"></i> Registrar Entrada de Vehículo
+            </a>
+        </div>
+        <div class="col-md-6">
+            <a href="{% url 'historial_acceso' %}" class="btn btn-info btn-lg btn-block">
+                <i class="fas fa-history"></i> Ver Historial Completo
+            </a>
+        </div>
+    </div>
+
+    <!-- Vehículos en taller -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-warehouse"></i> Vehículos en Taller ({{ total_en_taller }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if vehiculos_en_taller %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Patente</th>
+                                    <th>Vehículo</th>
+                                    <th>Chofer</th>
+                                    <th>Entrada</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in vehiculos_en_taller %}
+                                <tr>
+                                    <td><strong>{{ item.vehiculo.patente }}</strong></td>
+                                    <td>{{ item.vehiculo.marca }} {{ item.vehiculo.modelo }}</td>
+                                    <td>{{ item.registro_entrada.nombre_chofer }}</td>
+                                    <td>{{ item.registro_entrada.fecha_hora|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        {% if item.vehiculo.estado == 'listo' %}
+                                        <span class="badge badge-success">{{ item.vehiculo.get_estado_display }}</span>
+                                        {% elif item.vehiculo.estado == 'reparacion' %}
+                                        <span class="badge badge-warning">{{ item.vehiculo.get_estado_display }}</span>
+                                        {% else %}
+                                        <span class="badge badge-secondary">{{ item.vehiculo.get_estado_display
+                                            }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'registrar_salida' item.vehiculo.id %}"
+                                            class="btn btn-sm btn-primary">
+                                            <i class="fas fa-sign-out-alt"></i> Registrar Salida
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No hay vehículos en el taller actualmente.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Últimos movimientos -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> Últimos Movimientos</h5>
+                </div>
+                <div class="card-body">
+                    {% if ultimos_registros %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Fecha/Hora</th>
+                                    <th>Tipo</th>
+                                    <th>Patente</th>
+                                    <th>Vehículo</th>
+                                    <th>Chofer</th>
+                                    <th>Guardia</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for registro in ultimos_registros %}
+                                <tr>
+                                    <td>{{ registro.fecha_hora|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        {% if registro.tipo_movimiento == 'entrada' %}
+                                        <span class="badge badge-success">
+                                            <i class="fas fa-arrow-down"></i> Entrada
+                                        </span>
+                                        {% else %}
+                                        <span class="badge badge-info">
+                                            <i class="fas fa-arrow-up"></i> Salida
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td><strong>{{ registro.vehiculo.patente }}</strong></td>
+                                    <td>{{ registro.vehiculo.marca }} {{ registro.vehiculo.modelo }}</td>
+                                    <td>{{ registro.nombre_chofer }}</td>
+                                    <td>{{ registro.guardia.get_full_name|default:registro.guardia.username }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">No hay registros recientes.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
