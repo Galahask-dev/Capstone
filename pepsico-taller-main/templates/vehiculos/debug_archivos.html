@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Debug Archivos - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 style="margin: 0;">🔧 Debug - Estado de Archivos</h2>
+        <a href="{% url 'clinica_dashboard' %}" class="btn btn-primary">← Volver al Dashboard</a>
+    </div>
+    <div class="card-body">
+        <!-- Información del sistema -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <h3 style="margin: 0;">📁 Información del Sistema de Archivos</h3>
+            </div>
+            <div class="card-body">
+                <div class="grid grid-2">
+                    <div>
+                        <strong>📂 Media Root:</strong><br>
+                        <code>{{ media_root }}</code>
+                    </div>
+                    <div>
+                        <strong>📁 Directorio de Documentos:</strong><br>
+                        <code>{{ documentos_dir }}</code>
+                        {% if documentos_dir_existe %}
+                            <span style="color: #28a745;">✅ Existe</span>
+                        {% else %}
+                            <span style="color: #dc3545;">❌ No existe</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if archivos_en_dir %}
+                <div style="margin-top: 1.5rem;">
+                    <strong>📄 Archivos en el directorio ({{ archivos_en_dir|length }}):</strong>
+                    <ul style="margin-top: 0.5rem; background: #f8f9fa; padding: 1rem; border-radius: 4px; max-height: 200px; overflow-y: auto;">
+                        {% for archivo in archivos_en_dir %}
+                        <li><code>{{ archivo }}</code></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Estado de documentos -->
+        <div class="card">
+            <div class="card-header">
+                <h3 style="margin: 0;">📋 Últimos Documentos ({{ debug_info|length }})</h3>
+            </div>
+            <div class="card-body">
+                {% if debug_info %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Vehículo</th>
+                            <th>Tipo</th>
+                            <th>Archivo</th>
+                            <th>Estado</th>
+                            <th>Tamaño</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for info in debug_info %}
+                        <tr>
+                            <td>{{ info.documento.id }}</td>
+                            <td>{{ info.documento.vehiculo.patente }}</td>
+                            <td>{{ info.documento.get_tipo_documento_display }}</td>
+                            <td>
+                                <code style="font-size: 0.8rem;">{{ info.documento.archivo.name|default:"Sin archivo" }}</code>
+                            </td>
+                            <td>
+                                {% if info.archivo_existe %}
+                                    <span style="color: #28a745;">✅ Existe</span>
+                                {% else %}
+                                    <span style="color: #dc3545;">❌ No encontrado</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ info.archivo_size|filesizeformat }}</td>
+                            <td>{{ info.documento.fecha_subida|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if info.archivo_existe %}
+                                    <a href="{{ info.documento.archivo.url }}" target="_blank" class="btn btn-sm btn-primary">🔗 Ver</a>
+                                {% else %}
+                                    <span style="color: #dc3545; font-size: 0.8rem;">No disponible</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div style="text-align: center; padding: 2rem; color: #666;">
+                    <div style="font-size: 3rem;">📄</div>
+                    <h3>No hay documentos en el sistema</h3>
+                    <p>Sube algunos documentos para ver información de debug aquí.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Acciones de mantenimiento -->
+        <div class="card" style="margin-top: 2rem;">
+            <div class="card-header">
+                <h3 style="margin: 0;">🔧 Acciones de Mantenimiento</h3>
+            </div>
+            <div class="card-body">
+                <p>Utiliza estas acciones para resolver problemas comunes:</p>
+                <div class="grid grid-3">
+                    <div style="text-align: center; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                        <div style="font-size: 2rem;">📁</div>
+                        <h4>Crear Directorio</h4>
+                        <p style="font-size: 0.9rem; color: #666;">Si el directorio de documentos no existe</p>
+                        <button onclick="crearDirectorio()" class="btn btn-warning">Crear</button>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                        <div style="font-size: 2rem;">🔄</div>
+                        <h4>Actualizar Página</h4>
+                        <p style="font-size: 0.9rem; color: #666;">Refrescar información de debug</p>
+                        <button onclick="location.reload()" class="btn btn-info-bg">Actualizar</button>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                        <div style="font-size: 2rem;">🧹</div>
+                        <h4>Limpiar Cache</h4>
+                        <p style="font-size: 0.9rem; color: #666;">Limpiar archivos temporales</p>
+                        <button onclick="limpiarCache()" class="btn btn-secondary">Limpiar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function crearDirectorio() {
+    alert('Esta función requiere permisos de administrador del servidor. Verifica que el directorio {{ documentos_dir }} exista y tenga permisos de escritura.');
+}
+
+function limpiarCache() {
+    alert('Para limpiar el cache, reinicia el servidor Django y verifica los permisos del directorio media.');
+}
+</script>
+
+{% endblock %}

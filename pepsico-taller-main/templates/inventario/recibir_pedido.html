@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Recibir Pedido - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 style="margin:0;"><i class="fa-solid fa-box-open"></i> Recibir Pedido</h2>
+    </div>
+    <div class="card-body">
+        <p>
+            <strong>Código:</strong>
+            {% if pedido.codigo_pedido %}{{ pedido.codigo_pedido }}{% else %}-{% endif %}
+        </p>
+
+        <p>
+            <strong>Repuesto:</strong>
+            {% if pedido.repuesto.nombre %}
+                {{ pedido.repuesto.nombre }}
+            {% elif pedido.repuesto_nombre %}
+                {{ pedido.repuesto_nombre }}
+            {% elif pedido.repuesto.id %}
+                Repuesto #{{ pedido.repuesto.id }}
+            {% else %}
+                -
+            {% endif %}
+        </p>
+
+        <p><strong>Cantidad solicitada:</strong> {{ pedido.cantidad_solicitada }}</p>
+
+        {% if fallback %}
+            <div class="alert alert-warning" role="alert">
+                Atención: este pedido contiene datos inconsistentes en la base de datos y se muestra en modo de solo lectura. No es posible procesar la recepción desde aquí. Contacte al administrador para corregir los datos.
+            </div>
+            <div style="margin-top:1rem;">
+                <a href="{% url 'lista_pedidos' %}" class="btn btn-secondary">Volver a Pedidos</a>
+            </div>
+        {% else %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="cantidad_recibida">Cantidad recibida</label>
+                <input type="number" min="0" name="cantidad_recibida" id="cantidad_recibida" class="form-control" value="{{ pedido.cantidad_solicitada }}">
+            </div>
+
+            <div class="form-group" style="margin-top:1rem;">
+                <label for="costo_unitario">Costo unitario (opcional)</label>
+                <input type="text" name="costo_unitario" id="costo_unitario" class="form-control" value="{% if pedido.costo_unitario %}{{ pedido.costo_unitario }}{% endif %}">
+            </div>
+
+            <div style="margin-top:1rem;">
+                <button type="submit" class="btn btn-success">Recibir</button>
+                <a href="{% url 'lista_pedidos' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

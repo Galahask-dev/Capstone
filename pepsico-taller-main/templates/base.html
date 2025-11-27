@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>{% block title %}PepsiCo Taller{% endblock %}</title>
+    <!-- Fuente moderna y ligera -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome (icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        :root {
+            --pepsico-blue: #004B93;
+            --pepsico-red: #D32D27;
+            --pepsico-light-blue: #00A3E0;
+            --light-gray: #f8f9fa;
+            --dark-gray: #343a40;
+            --muted: #6c757d;
+            --glass: rgba(255, 255, 255, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--pepsico-blue), var(--pepsico-light-blue));
+            color: white;
+            padding: 1.1rem 0;
+            /* navbar más alta */
+            min-height: 72px;
+            box-shadow: 0 8px 22px rgba(2, 6, 23, 0.14);
+            backdrop-filter: saturate(120%) blur(4px);
+            position: sticky;
+            top: 0;
+            z-index: 1200;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        /* Colocar logo pegado al borde izquierdo del navbar (viewport) */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-left: 0;
+            position: absolute;
+            left: 0.6rem;
+            /* separación mínima del borde */
+            top: 50%;
+            transform: translateY(-50%);
+            white-space: nowrap;
+            /* texto sin salto */
+        }
+
+        /* Reservar espacio en el contenedor para que el contenido no se sobreponga al logo y al usuario */
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+            padding-left: 14rem;
+            /* espacio para logo + texto */
+            padding-right: 18rem;
+            /* reducido para acercar elementos al área de usuario */
+        }
+
+        /* Nota: .logo tiene posicionamiento absolute definido arriba */
+
+        .logo h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .logo-img {
+            height: 2.25rem;
+            /* ajustar para la navbar más alta */
+            width: auto;
+            display: inline-block;
+            border-radius: 4vh;
+            background: rgba(255, 255, 255, 0.932);
+            padding: 5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.6rem;
+            list-style: none;
+            align-items: center;
+            position: absolute;
+            /* ubicar junto al logo */
+            left: 13.5rem;
+            /* movido ligeramente a la derecha */
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1220;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.45rem 0.85rem;
+            border-radius: 6px;
+            transition: background-color 0.18s, transform 0.12s;
+            font-weight: 600;
+            font-size: 0.92rem;
+            opacity: 0.98;
+        }
+
+        /* Icon spacing */
+        .nav-links a i,
+        .dropdown-content a i,
+        .dropdown-section strong i,
+        .dropdown-toggle i {
+            margin-right: 0.55rem;
+            width: 1em;
+            text-align: center;
+        }
+
+        .nav-links a i {
+            font-size: 0.95rem;
+        }
+
+        .dropdown-section strong i {
+            margin-right: 0.6rem;
+        }
+
+        .nav-links a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Botón "Más" más ancho */
+        .nav-links .btn-mas {
+            padding: 0.45rem 1.5rem;
+            min-width: 120px;
+        }
+
+        /* Indicador de modo vista - ahora posicionado después del buscador */
+        .role-view-indicator {
+            background: linear-gradient(135deg, #ffc107, #f0ad4e);
+            color: #212529;
+            padding: 0.35rem 0.7rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            animation: pulse-glow 2s infinite;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .role-view-indicator:hover {
+            background: linear-gradient(135deg, #ff9800, #ff6b08);
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.5);
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
+            }
+
+            50% {
+                box-shadow: 0 0 20px rgba(255, 193, 7, 0.8);
+            }
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: white;
+            position: absolute;
+            /* pegado a la derecha del viewport */
+            right: 3rem;
+            /* desplazado hacia la izquierda (más dentro del navbar) */
+            top: 50%;
+            transform: translateY(-50%);
+            white-space: nowrap;
+        }
+
+        /* BOTÓN HAMBURGER para móvil */
+        .navbar-toggler {
+            display: none;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 0.35rem 0.5rem;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .navbar-toggler:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 163, 224, 0.12);
+        }
+
+        .nav-links a:active,
+        .nav-links a:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Barra de búsqueda - colocar a la derecha, antes del login (versión más compacta) */
+        .search-bar {
+            position: absolute;
+            right: 26rem;
+            /* movida más a la izquierda para hacer espacio al indicador de vista */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 240px;
+            /* más pequeña */
+            max-width: 28%;
+            z-index: 1250;
+            font-size: 0.85rem;
+        }
+
+        .search-bar form {
+            display: flex;
+        }
+
+        .search-bar input[type="text"] {
+            flex: 1;
+            padding: 0.45rem 0.5rem;
+            border: none;
+            border-radius: 4px 0 0 4px;
+            font-size: 0.88rem;
+        }
+
+        .search-bar button {
+            background: white;
+            border: none;
+            padding: 0.42rem 0.68rem;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: var(--pepsico-blue);
+            color: white;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: var(--pepsico-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--pepsico-light-blue);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        /* Fondo personalizado para botones informativos: degradado y efecto hover */
+        .btn-info-bg {
+            background: linear-gradient(135deg, #00A3E0 0%, #004B93 100%);
+            color: white;
+            box-shadow: 0 6px 18px rgba(0, 74, 147, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .btn-info-bg:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.03);
+            box-shadow: 0 10px 26px rgba(0, 74, 147, 0.22);
+        }
+
+        /* Variante más suave cuando se usa con .btn-sm */
+        .btn-sm.btn-info-bg {
+            padding: 0.3rem 0.6rem;
+        }
+
+        .btn-danger {
+            background: var(--pepsico-red);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .table th {
+            background-color: var(--light-gray);
+            font-weight: 600;
+        }
+
+        .table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Pequeñas mejoras en el footer */
+        footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .status-ingresado {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-diagnostico {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-reparacion {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-listo {
+            background: #cce7ff;
+            color: #004085;
+        }
+
+        .status-entregado {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        /* Priority styles (soft, flat colors) */
+        .priority-critica {
+            background: #fdecea;
+            color: #7a1f1f;
+            border: 1px solid rgba(250, 80, 80, 0.12);
+        }
+
+        .priority-alta {
+            background: #fff2e6;
+            color: #6b3a10;
+            border: 1px solid rgba(255, 160, 60, 0.08);
+        }
+
+        .priority-media {
+            background: #fffbea;
+            color: #6b5a00;
+            border: 1px solid rgba(255, 205, 65, 0.08);
+        }
+
+        .priority-baja {
+            background: #eaf9fa;
+            color: #065a63;
+            border: 1px solid rgba(20, 160, 160, 0.06);
+        }
+
+        /* Status styles (soft, flat colors) */
+        .status-pendiente {
+            background: #fff9e6;
+            color: #7a5a00;
+        }
+
+        .status-en_proceso {
+            background: #eef8ff;
+            color: #114a6a;
+        }
+
+        .status-pausada {
+            background: #fff6ef;
+            color: #7a4b00;
+        }
+
+        .status-completada {
+            background: #eef9f0;
+            color: #1b6a3b;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .grid-4 {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+
+        .metric-card {
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            d noo w: 0 0 border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: white;
+            position: absolute;
+            /* pegado a la derecha del viewport */
+            right: 3rem;
+            /* desplazado hacia la izquierda (más dentro del navbar) */
+            top: 50%;
+            transform: translateY(-50%);
+            white-space: nowrap;
+            max-width: 260px;
+            /* evitar que el usuario empuje todo el navbar */
+            overflow: visible;
+            /* permitir que el dropdown se muestre fuera del contenedor */
+        }
+
+        /* Limitar la etiqueta que muestra el nombre para usar ellipsis si es muy larga */
+        .user-info .dropdown-toggle {
+            max-width: 290px;
+            display: inline-block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .dropdown-toggle {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+            display: block;
+        }
+
+        .dropdown-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .dropdown {
+            position: relative;
+            /* ensure dropdown-content positions relative to its toggle */
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background: white;
+            min-width: 600px;
+            max-width: 800px;
+            max-height: 70vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            z-index: 1300;
+            /* above navbar (1200) so it isn't clipped */
+            top: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: auto;
+            opacity: 1;
+            display: none;
+        }
+
+        /* Layout en columnas para el dropdown del menú "Más" */
+        .dropdown-mega {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+        }
+
+        .dropdown-mega .dropdown-section {
+            border-bottom: none;
+            border-right: 1px solid #eee;
+            margin: 0;
+            padding: 0.5rem 0;
+        }
+
+        .dropdown-mega .dropdown-section:last-child {
+            border-right: none;
+        }
+
+        .dropdown-content a {
+            color: #333;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            display: block;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85rem;
+        }
+
+        .dropdown-content a:hover {
+            background: #f8f9fa;
+            color: #004B93;
+        }
+
+        /* Mostrar dropdown únicamente cuando tenga la clase .open (abrir por click) */
+        .dropdown.open .dropdown-content {
+            display: block;
+        }
+
+        /* Alineación alternativa para dropdowns que deben mostrarse a la derecha */
+        .dropdown.align-right .dropdown-content {
+            left: auto;
+            right: 0;
+            transform: none;
+        }
+
+        /* Desplazar ligeramente hacia la derecha dropdowns concretos (ej: 'Más') */
+        .dropdown.shift-right .dropdown-content {
+            left: auto;
+            right: -200px;
+            /* posicionar a la izquierda del botón */
+            top: calc(100% + 6px);
+            /* desplegar hacia abajo */
+            transform: none;
+        }
+
+        .dropdown-section {
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .dropdown-section:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-section strong {
+            display: block;
+            padding: 0.4rem 1rem;
+            color: #004B93;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .dropdown-section a {
+            padding-left: 1.5rem;
+            font-size: 0.8rem;
+            padding-top: 0.4rem;
+            padding-bottom: 0.4rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            background: #fff;
+            color: #212529;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--pepsico-light-blue);
+            box-shadow: 0 0 0 2px rgba(0, 163, 224, 0.25);
+        }
+
+        .form-check-input {
+            width: 1.1rem;
+            height: 1.1rem;
+            vertical-align: middle;
+        }
+
+        /* Estilos responsivos */
+        @media (max-width: 768px) {
+            .navbar-container {
+                flex-direction: column;
+                gap: 1rem;
+                padding-left: 0;
+                /* en móvil volvemos al flujo normal */
+            }
+
+            .nav-links {
+                flex-direction: column;
+                gap: 0.5rem;
+                width: 100%;
+                display: none;
+                /* hidden by default on mobile, toggled by JS */
+            }
+
+            .navbar-toggler {
+                display: block;
+            }
+
+            .nav-links.show {
+                display: flex;
+            }
+
+            .dropdown-content {
+                position: static;
+                box-shadow: none;
+                border: 1px solid #ddd;
+                width: 100%;
+            }
+
+            .user-info {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            /* En móvil, el logo vuelve a posición estática y el texto puede ocupar varios renglones si es necesario */
+            .logo {
+                position: static;
+                transform: none;
+                padding-left: 0;
+                white-space: normal;
+            }
+
+            .nav-links {
+                position: static;
+                transform: none;
+                left: auto;
+                top: auto;
+                width: 100%;
+                justify-content: flex-start;
+                padding-top: 0.5rem;
+            }
+
+            .navbar-toggler {
+                position: absolute;
+                right: 1rem;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .search-bar {
+                position: static;
+                width: 100%;
+                max-width: none;
+                transform: none;
+                margin: 0;
+                order: 1;
+            }
+
+            .search-bar form {
+                width: 100%;
+            }
+
+            .user-info {
+                position: static;
+                transform: none;
+                order: 2;
+            }
+
+            /* Indicador de vista en móvil - posición estática */
+            .role-view-indicator {
+                position: static !important;
+                transform: none !important;
+                margin: 0.5rem 0;
+                display: block;
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- templates/base.html - MODIFICAR EL NAVBAR COMPLETO -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="logo">
+                <h1><img src="https://i.postimg.cc/jSTv1DJn/instruments-logo-43257843.png" alt="PepsiCo"
+                        class="logo-img"> PepsiCo Taller</h1>
+            </div>
+
+            <!-- toggler visible en pantallas pequeñas -->
+            <button class="navbar-toggler" aria-label="Abrir menú" id="navbarToggler">☰</button>
+
+            {% if user.is_authenticated %}
+            <!-- BARRA DE BÚSQUEDA - AGREGAR -->
+
+
+            <ul class="nav-links" id="navLinks">
+                <!-- Navegación principal siempre visible -->
+                {% if user.rol == 'admin' %}
+                <li><a id="inicioBtn" class="btn btn-primary" data-loader="1" href="{% url 'dashboard_admin' %}"
+                        title="Dashboard - Administrador"><i class="fa-solid fa-shield-halved"></i>Inicio</a></li>
+                {% elif user.rol == 'jefe_taller' %}
+                <li><a id="inicioBtn" class="btn btn-primary" data-loader="1" href="{% url 'dashboard_jefe_taller' %}"
+                        title="Dashboard - Jefe de Taller"><i class="fa-solid fa-helmet-safety"></i>Inicio</a></li>
+                {% elif user.rol == 'mecanico' %}
+                <li><a id="inicioBtn" class="btn btn-primary" data-loader="1" href="{% url 'dashboard_mecanico' %}"
+                        title="Dashboard - Mecánico"><i class="fa-solid fa-wrench"></i>Inicio</a></li>
+                {% elif user.rol == 'chofer' %}
+                <li><a id="inicioBtn" class="btn btn-primary" data-loader="1" href="{% url 'dashboard_chofer' %}"
+                        title="Dashboard - Chofer"><i class="fa-solid fa-road"></i>Inicio</a></li>
+                {% elif user.rol == 'guardia' %}
+                <li><a id="inicioBtn" class="btn btn-primary" data-loader="1" href="{% url 'dashboard_guardia' %}"
+                        title="Dashboard - Guardia"><i class="fa-solid fa-shield"></i>Inicio</a></li>
+                {% elif user.rol == 'ehs' %}
+                <li><a id="inicioBtn" class="btn btn-primary" data-loader="1" href="{% url 'dashboard_ehs' %}"
+                        title="Dashboard - EHS"><i class="fa-solid fa-user-shield"></i>Inicio</a></li>
+                {% else %}
+                <li><a id="inicioBtn" href="{% url 'clinica_dashboard' %}" title="Dashboard Principal"><i
+                            class="fa-solid fa-road"></i>Inicio</a></li>
+                {% endif %}
+
+                {% if user.is_superuser or user.rol == 'admin' or user.rol == 'jefe_taller' or user.rol == 'mecanico' %}
+                <li><a href="{% url 'tablero_clinica' %}" title="Dashboard de Vehículos"><i
+                            class="fa-solid fa-car"></i>vehiculos</a></li>
+                {% endif %}
+                {% if user.is_superuser or user.rol == 'admin' or user.rol == 'guardia' or user.rol == 'recepcionista' %}
+                <li><a href="{% url 'pendientes_ingreso' %}" title="Pendientes de Ingreso"><i
+                            class="fa-solid fa-list-check"></i>Pendientes</a></li>
+                {% endif %}
+                {# Tareas: visibilidad para admin, jefe_taller y mecánicos #}
+                {% if user.is_superuser or user.rol == 'admin' or user.rol == 'jefe_taller' or user.rol == 'mecanico' %}
+                <li><a href="{% url 'lista_tareas' %}" title="Gestión de Tareas"><i
+                            class="fa-solid fa-wrench"></i>Tareas</a></li>
+                {% endif %}
+
+                {# Inventario: visibilidad para admin, jefe_taller y bodegueros - OCULTO #}
+                {% comment %}
+                {% if user.is_superuser or user.rol == 'admin' or user.rol == 'jefe_taller' or user.rol == 'bodeguero'
+                %}
+                <li><a href="{% url 'dashboard_inventario' %}" title="Gestión de Inventario"><i
+                            class="fa-solid fa-boxes-stacked"></i>Inventario</a></li>
+                {% endif %}
+                {% endcomment %}
+
+                {# Recepción: visibilidad para recepcionistas #}
+                {% if user.rol == 'recepcionista' or user.is_superuser or user.rol == 'admin' %}
+                <li><a href="{% url 'dashboard_recepcionista' %}" title="Recepción de Vehículos"><i
+                            class="fa-solid fa-clipboard-list"></i>Recepción</a></li>
+                {% endif %}
+
+                {# Reportes: visibilidad para admin, jefe_taller y EHS #}
+                {% if user.is_superuser or user.rol == 'admin' or user.rol == 'ehs' %}
+                <li><a href="{% url 'dashboard_reportes' %}" title="Reportes y Métricas"><i
+                            class="fa-solid fa-chart-bar"></i>Reportes</a></li>
+                {% endif %}
+                <!-- Enlace a Gestión de Usuarios para Admin -->
+                {% if user.is_superuser or user.rol == 'admin' %}
+                <li><a href="{% url 'lista_usuarios' %}" title="Gestión de Usuarios"><i
+                            class="fa-solid fa-users-gear"></i>Usuarios</a></li>
+                {% endif %}
+                <!-- Menú desplegable unificado -->
+                {% if user.is_superuser or user.rol == 'admin' %}
+                <li class="dropdown shift-right">
+                    <a href="#" class="dropdown-toggle btn-mas" title="Más operaciones"><i
+                            class="fa-solid fa-ellipsis"></i>Más</a>
+                    <div class="dropdown-content">
+                        <div class="dropdown-mega">
+                            <div class="dropdown-section">
+                                <strong><i class="fa-solid fa-car-side"></i>Vehículos</strong>
+                                <a href="{% url 'ingreso_vehiculo' %}"><i class="fa-solid fa-plus"></i>Nuevo Ingreso</a>
+                                <a href="{% url 'lista_taller' %}"><i class="fa-solid fa-list"></i>Lista Taller</a>
+                                <a href="{% url 'gestionar_vehiculos' %}"><i class="fa-solid fa-cog"></i>Gestionar
+                                    Vehículos</a>
+                            </div>
+                            <div class="dropdown-section">
+                                <strong><i class="fa-solid fa-chart-bar"></i>Reportes</strong>
+                                <a href="{% url 'reporte_productividad' %}"><i
+                                        class="fa-solid fa-user-tie"></i>Productividad</a>
+                                <a href="{% url 'reporte_tiempos_pausas' %}"><i
+                                        class="fa-solid fa-clock"></i>Tiempos</a>
+                                <a href="{% url 'reporte_tiempos_taller' %}"><i class="fa-solid fa-road"></i>Tiempos
+                                    Taller</a>
+                            </div>
+                            <div class="dropdown-section">
+                                <strong><i class="fa-solid fa-shield-halved"></i>Seguridad</strong>
+                                <a href="{% url 'lista_siniestros' %}"><i
+                                        class="fa-solid fa-triangle-exclamation"></i>Siniestros</a>
+
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                {% else %}
+                {% if user.rol == 'guardia' %}
+                <li><a href="{% url 'panel_guardia' %}"><i class="fa-solid fa-shield-alt"></i>Control Acceso</a></li>
+                {% endif %}
+                {% if user.rol == 'recepcionista' or user.rol == 'chofer' %}
+                <li><a href="{% url 'ingreso_vehiculo' %}"><i class="fa-solid fa-plus"></i>Nuevo Ingreso</a></li>
+                {% endif %}
+                {% if user.rol != 'chofer' %}
+                <li><a href="{% url 'lista_taller' %}"><i class="fa-solid fa-list"></i>Lista Taller</a></li>
+                {% endif %}
+                {% if user.rol == 'chofer' %}
+                <li><a href="{% url 'agenda:agendar_cita' %}"><i class="fa-solid fa-calendar-plus"></i>Agendar</a></li>
+                <li><a href="{% url 'agenda:mis_citas' %}"><i class="fa-solid fa-list-check"></i>Mis Citas</a></li>
+                {% endif %}
+                {% if user.rol == 'jefe_taller' %}
+                <li><a href="{% url 'agenda:lista_citas' %}"><i class="fa-solid fa-table-list"></i>Agenda Taller</a>
+                </li>
+                {% endif %}
+                {% if user.rol == 'ehs' or user.rol == 'admin' %}
+                <li><a href="{% url 'lista_siniestros' %}"><i
+                            class="fa-solid fa-triangle-exclamation"></i>Siniestros</a></li>
+                {% endif %}
+
+                {% endif %}
+            </ul>
+
+            <!-- Indicador de modo vista - movido después del buscador -->
+            {% if request.viewing_as_role %}
+            <a href="{% url 'clear_view_as_role' %}" class="role-view-indicator"
+                style="position: absolute; right: 43rem; top: 50%; transform: translateY(-50%); z-index: 1260; cursor: pointer; text-decoration: none;"
+                title="Click para salir del modo vista">
+                <i class="fa-solid fa-eye"></i> Vista: {{ user.get_rol_display }} <i class="fa-solid fa-xmark"
+                    style="margin-left: 0.5rem;"></i>
+            </a>
+            {% endif %}
+
+            <div class="user-info">
+                <div class="dropdown align-right">
+                    <a href="#" class="dropdown-toggle" style="color: white; text-decoration: none;">
+                        <i class="fa-solid fa-user"></i>
+                        {% if request.viewing_as_role %}
+                        {{ request.original_user.get_full_name|default:request.original_user.username }} ({{
+                        request.original_user.get_rol_display }})
+                        {% else %}
+                        {{ user.get_full_name|default:user.username }} ({{ user.get_rol_display }})
+                        {% endif %}
+                    </a>
+                    <div class="dropdown-content" style="right: 0; left: auto;">
+                        <a href="{% url 'perfil_usuario' %}"><i class="fa-solid fa-gear"></i>Mi Perfil</a>
+
+                        {% if user.rol == 'admin' or user.is_superuser or user.rol == 'jefe_taller' %}
+                        <div style="border-top: 1px solid #eee; margin: 0.5rem 0;"></div>
+                        <a href="{% url 'role_selector' %}"><i class="fa-solid fa-user-gear"></i>Vista como Rol</a>
+                        {% if request.viewing_as_role %}
+                        <a href="{% url 'clear_view_as_role' %}" style="color: #ffc107;"><i
+                                class="fa-solid fa-arrow-rotate-left"></i>Salir de Vista</a>
+                        {% endif %}
+                        {% endif %}
+
+                        {% if user.is_superuser %}
+                        <div style="border-top: 1px solid #eee; margin: 0.5rem 0;"></div>
+                        <a href="/admin/"><i class="fa-solid fa-toolbox"></i>Administración</a>
+                        {% endif %}
+
+                        <div style="border-top: 1px solid #eee; margin: 0.5rem 0;"></div>
+                        <a href="{% url 'logout' %}" style="color: #dc3545;"><i
+                                class="fa-solid fa-right-from-bracket"></i>Cerrar Sesión</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+    <main class="main-container">
+        {% if messages %}
+        <div id="toastContainer"
+            style="position:fixed;top:1rem;right:1rem;z-index:3000;display:flex;flex-direction:column;gap:0.5rem;">
+            {% for message in messages %}
+            <div class="toast-item toast-{{ message.tags }}"
+                style="display:flex;align-items:flex-start;gap:0.6rem;background:#fff;border-radius:8px;padding:0.75rem 1rem;box-shadow:0 8px 22px rgba(2,6,23,0.14);min-width:280px;border-left:4px solid;">
+                <div class="toast-icon" style="font-size:1.1rem;line-height:1.1rem;">
+                    {% if 'success' in message.tags %}
+                        <i class="fa-solid fa-check-circle" style="color:#28a745;"></i>
+                    {% elif 'error' in message.tags %}
+                        <i class="fa-solid fa-triangle-exclamation" style="color:#dc3545;"></i>
+                    {% elif 'warning' in message.tags %}
+                        <i class="fa-solid fa-exclamation-circle" style="color:#ffc107;"></i>
+                    {% else %}
+                        <i class="fa-solid fa-info-circle" style="color:#17a2b8;"></i>
+                    {% endif %}
+                </div>
+                <div class="toast-content" style="flex:1;color:#212529;font-weight:500;">{{ message }}</div>
+                <button class="toast-close"
+                    style="background:transparent;border:none;color:#6c757d;font-size:1.1rem;cursor:pointer;">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        <script>
+            (function () {
+                var c = document.getElementById('toastContainer');
+                if (!c) return;
+                c.querySelectorAll('.toast-item').forEach(function (t) {
+                    var border = t.style;
+                    if (t.className.indexOf('toast-success') !== -1) { t.style.borderLeftColor = '#28a745'; }
+                    else if (t.className.indexOf('toast-error') !== -1) { t.style.borderLeftColor = '#dc3545'; }
+                    else if (t.className.indexOf('toast-warning') !== -1) { t.style.borderLeftColor = '#ffc107'; }
+                    else { t.style.borderLeftColor = '#17a2b8'; }
+                    var close = t.querySelector('.toast-close');
+                    if (close) { close.addEventListener('click', function () { t.style.opacity = '0'; t.style.transform = 'translateY(-6px)'; setTimeout(function () { if (t && t.parentNode) { t.parentNode.removeChild(t); } }, 200); }); }
+                    setTimeout(function () { t.style.opacity = '0'; t.style.transform = 'translateY(-6px)'; setTimeout(function () { if (t && t.parentNode) { t.parentNode.removeChild(t); } }, 200); }, 5000);
+                });
+            })();
+        </script>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer style="text-align: center; padding: 2rem; background: var(--dark-gray); color: white; margin-top: 4rem;">
+        <p>PepsiCo Chile - Sistema de Gestión de Taller &copy; 2025</p>
+    </footer>
+    <script>
+        // Toggle para menú móvil y dropdowns por click
+        (function () {
+            // Mobile navbar toggler
+            const toggler = document.getElementById('navbarToggler');
+            const nav = document.getElementById('navLinks');
+            if (toggler && nav) {
+                toggler.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    nav.classList.toggle('show');
+                });
+            }
+
+            // Dropdowns: abrir/cerrar por click
+            const dropdownToggles = Array.from(document.querySelectorAll('.dropdown > .dropdown-toggle'));
+            dropdownToggles.forEach(function (toggle) {
+                const parent = toggle.parentElement;
+                toggle.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // cerrar otros dropdowns
+                    document.querySelectorAll('.dropdown.open').forEach(function (d) {
+                        if (d !== parent) d.classList.remove('open');
+                    });
+                    parent.classList.toggle('open');
+                });
+            });
+
+            // Cerrar dropdowns y nav al clicar fuera
+            document.addEventListener('click', function (e) {
+                // cerrar nav mobile
+                if (nav && !nav.contains(e.target) && toggler && !toggler.contains(e.target)) {
+                    nav.classList.remove('show');
+                }
+                // cerrar dropdowns
+                document.querySelectorAll('.dropdown.open').forEach(function (d) {
+                    if (!d.contains(e.target)) d.classList.remove('open');
+                });
+            });
+
+            // Cerrar al presionar Escape
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    if (nav) nav.classList.remove('show');
+                    document.querySelectorAll('.dropdown.open').forEach(function (d) { d.classList.remove('open'); });
+                }
+            });
+        })();
+    </script>
+    <div id="routeLoader"
+        style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);z-index:2000;">
+        <div
+            style="background:#fff;padding:1rem 1.5rem;border-radius:8px;box-shadow:0 8px 22px rgba(2,6,23,0.18);display:flex;align-items:center;gap:0.75rem;">
+            <div
+                style="width:24px;height:24px;border:3px solid #eee;border-top-color:#004B93;border-radius:50%;animation:spin 0.8s linear infinite;">
+            </div>
+            <div style="color:#004B93;font-weight:600;">Cargando Dashboard...</div>
+        </div>
+    </div>
+    <script>
+        (function () {
+            var btn = document.getElementById('inicioBtn');
+            if (!btn) return;
+            var t;
+            if (btn.getAttribute('data-loader') === '1') {
+                btn.addEventListener('click', function () {
+                    var loader = document.getElementById('routeLoader');
+                    t = setTimeout(function () { if (loader) loader.style.display = 'flex'; }, 500);
+                });
+                window.addEventListener('beforeunload', function () { if (t) clearTimeout(t); });
+            }
+        })();
+    </script>
+</body>
+
+</html>

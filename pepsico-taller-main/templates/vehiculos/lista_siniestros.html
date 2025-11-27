@@ -1,0 +1,88 @@
+<!-- templates/vehiculos/lista_siniestros.html -->
+{% extends 'base.html' %}
+
+{% block title %}Lista de Siniestros - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 style="margin: 0;">🚨 Siniestros Reportados</h2>
+        <a href="{% url 'clinica_dashboard' %}" class="btn btn-primary">← Volver al Dashboard</a>
+    </div>
+    <div class="card-body">
+        <!-- Filtros -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <div class="card-body">
+                <form method="get" style="display: flex; gap: 1rem; align-items: end;">
+                    <div>
+                        <label for="estado">Filtrar por estado:</label>
+                        <select name="estado" id="estado" class="form-control" onchange="this.form.submit()">
+                            <option value="">Todos los estados</option>
+                            <option value="reportado" {% if filtro_estado == 'reportado' %}selected{% endif %}>Reportado</option>
+                            <option value="en_evaluacion" {% if filtro_estado == 'en_evaluacion' %}selected{% endif %}>En Evaluación</option>
+                            <option value="aprobado" {% if filtro_estado == 'aprobado' %}selected{% endif %}>Aprobado</option>
+                            <option value="rechazado" {% if filtro_estado == 'rechazado' %}selected{% endif %}>Rechazado</option>
+                        </select>
+                    </div>
+                    <div>
+                        <a href="{% url 'lista_siniestros' %}" class="btn btn-secondary">🔄 Limpiar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if siniestros %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>N° Siniestro</th>
+                    <th>Vehículo</th>
+                    <th>Descripción</th>
+                    <th>Estado</th>
+                    <th>Fecha Reporte</th>
+                    <th>Reportado por</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for siniestro in siniestros %}
+                <tr>
+                    <td><strong>{{ siniestro.numero_siniestro }}</strong></td>
+                    <td>
+                        <a href="{% url 'detalle_vehiculo' siniestro.vehiculo.id %}">
+                            {{ siniestro.vehiculo.patente }}
+                        </a><br>
+                        <small style="color: #666;">{{ siniestro.vehiculo.marca }} {{ siniestro.vehiculo.modelo }}</small>
+                    </td>
+                    <td>{{ siniestro.descripcion|truncatewords:10 }}</td>
+                    <td>
+                        <span class="status-badge 
+                            {% if siniestro.estado == 'reportado' %}status-ingresado
+                            {% elif siniestro.estado == 'en_evaluacion' %}status-diagnostico
+                            {% elif siniestro.estado == 'aprobado' %}status-listo
+                            {% else %}status-entregado{% endif %}">
+                            {{ siniestro.get_estado_display }}
+                        </span>
+                    </td>
+                    <td>{{ siniestro.fecha_reporte|date:"d/m/Y H:i" }}</td>
+                    <td>{{ siniestro.reportado_por.get_full_name|default:siniestro.reportado_por.username }}</td>
+                    <td>
+                        <a href="{% url 'detalle_siniestro' siniestro.id %}" class="btn btn-sm btn-primary"><i class="fa-solid fa-eye" aria-hidden="true"></i> Ver</a>
+                        {% if user.rol == 'admin' or user.rol == 'jefe_taller' %}
+                        <a href="#" class="btn btn-sm btn-warning">✏️ Editar</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align: center; padding: 3rem; color: #666;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">🚨</div>
+            <h3>No hay siniestros reportados</h3>
+            <p>No se han registrado siniestros en el sistema.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

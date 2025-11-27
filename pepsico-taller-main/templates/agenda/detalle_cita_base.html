@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Detalle de Cita - PepsiCo Taller{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+    <h2 style="margin:0;"><i class="fa-solid fa-calendar-day"></i> Detalle de Cita</h2>
+    <div>
+      <a href="{% url 'agenda:lista_citas' %}" class="btn btn-primary"><i class="fa-solid fa-table-list"></i> Volver</a>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="card-body">
+          <table class="table">
+            <tbody>
+              <tr><th>Patente</th><td>{{ cita.patente }}</td></tr>
+              <tr><th>Vehículo</th><td>{% if cita.vehiculo %}{{ cita.vehiculo.marca }} {{ cita.vehiculo.modelo }}{% else %}–{% endif %}</td></tr>
+              <tr><th>Chofer</th><td>{% if cita.vehiculo %}{% firstof cita.vehiculo.nombre_chofer '–' %}{% else %}–{% endif %}</td></tr>
+              <tr><th>Tipo</th><td>{{ cita.get_tipo_mantencion_display }}</td></tr>
+              <tr><th>Fecha</th><td>{{ cita.fecha_hora|date:"d/m/Y H:i" }}</td></tr>
+              <tr><th>Duración</th><td>{{ cita.duracion_minutos }} min</td></tr>
+              <tr><th>Estado</th><td>{{ cita.get_estado_display }}</td></tr>
+              <tr><th>Solicitante</th><td>{% if cita.solicitante %}{{ cita.solicitante.get_full_name|default:cita.solicitante.username }}{% else %}–{% endif %}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <h3 style="margin-top:0;">Observaciones</h3>
+          <p>{% firstof cita.observaciones 'Sin observaciones.' %}</p>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:1rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+      {% if user.rol == 'jefe_taller' or user.rol == 'admin' %}
+      {% if cita.estado == 'pendiente' %}
+      <form method="post" action="{% url 'agenda:aceptar_cita' cita.id %}" class="d-inline" onsubmit="return confirm('¿Aceptar esta solicitud?');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success"><i class="fa-solid fa-check"></i> Aceptar</button>
+      </form>
+      {% endif %}
+      {% if cita.vehiculo %}
+      <a href="{% url 'crear_tarea' %}?vehiculo={{ cita.vehiculo.id }}" class="btn btn-info"><i class="fa-solid fa-plus"></i> Crear Tarea</a>
+      {% endif %}
+      <form method="post" action="{% url 'agenda:cancelar_cita' cita.id %}" class="d-inline" onsubmit="return confirm('¿Cancelar esta cita?');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-warning"><i class="fa-solid fa-ban"></i> Cancelar</button>
+      </form>
+      <form method="post" action="{% url 'agenda:eliminar_cita' cita.id %}" class="d-inline" onsubmit="return confirm('¿Eliminar definitivamente?');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash"></i> Borrar</button>
+      </form>
+      {% elif user == cita.solicitante and user.rol == 'chofer' %}
+        {% if cita.estado == 'pendiente' or cita.estado == 'confirmada' %}
+        <form method="post" action="{% url 'agenda:cancelar_cita' cita.id %}" class="d-inline" onsubmit="return confirm('¿Cancelar esta cita?');">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-warning"><i class="fa-solid fa-ban"></i> Cancelar</button>
+        </form>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

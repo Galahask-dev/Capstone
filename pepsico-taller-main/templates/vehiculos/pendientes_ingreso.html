@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Pendientes de Ingreso - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 style="margin:0;">📝 Pendientes de Ingreso</h2>
+        <div class="row-inline u-gap-sm">
+            <a href="{% url 'clinica_dashboard' %}" class="btn btn-primary">← Volver al Tablero</a>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if vehiculos %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Patente</th>
+                    <th>Vehículo</th>
+                    <th>Estado</th>
+                    <th>Guardia</th>
+                    <th>Fotos Ingreso</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in vehiculos %}
+                <tr>
+                    <td><strong>{{ v.patente }}</strong></td>
+                    <td>{{ v.marca }} {{ v.modelo }}</td>
+                    <td>
+                        <span class="status-badge status-{{ v.estado }}">{{ v.get_estado_display }}</span>
+                    </td>
+                    <td>
+                        {% if v.guardia_ingreso %}
+                            {{ v.guardia_ingreso.get_full_name|default:v.guardia_ingreso.username }}
+                        {% else %}
+                            <em>Sin registrar</em>
+                        {% endif %}
+                    </td>
+                    <td>{{ v.fotos_ingreso }}</td>
+                    <td style="display:flex; gap:0.5rem;">
+                        <a href="{% url 'detalle_vehiculo' v.id %}" class="btn btn-sm btn-info">Ver</a>
+                        <a href="{% url 'documentos_vehiculo' v.id %}" class="btn btn-sm btn-secondary">Docs</a>
+                        {% if user.is_superuser or user.rol == 'admin' or user.rol == 'guardia' or user.rol == 'recepcionista' %}
+                        <form method="post" action="{% url 'confirmar_ingreso_vehiculo' v.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('¿Aprobar ingreso de {{ v.patente }}?')">Aprobar Ingreso</button>
+                        </form>
+                        <form method="post" action="{% url 'ignorar_ingreso_vehiculo' v.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Ignorar esta solicitud de ingreso?')">Ignorar</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align:center; color:#666; padding:2rem;">
+            <div style="font-size:3rem;">✅</div>
+            No hay vehículos pendientes de ingreso.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

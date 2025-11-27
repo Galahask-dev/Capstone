@@ -1,0 +1,116 @@
+<!-- templates/inventario/lista_repuestos.html -->
+{% extends 'base.html' %}
+
+{% block title %}Lista de Repuestos - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+    <h2 style="margin: 0;"><i class="fa-solid fa-list" aria-hidden="true"></i> Lista de Repuestos</h2>
+        <div>
+            <a href="{% url 'dashboard_inventario' %}" class="btn btn-primary"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Dashboard</a>
+            <a href="{% url 'crear_repuesto' %}" class="btn btn-success"><i class="fa-solid fa-plus" aria-hidden="true"></i> Nuevo Repuesto</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- Filtros -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <div class="card-body">
+                <form method="get" style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 1rem; align-items: end;">
+                    <div>
+                        <label for="search">Buscar:</label>
+                        <input type="text" name="search" id="search" class="form-control" value="{{ filtro_search }}" placeholder="Código, nombre, modelo...">
+                    </div>
+                    <div>
+                        <label for="estado">Estado:</label>
+                        <select name="estado" id="estado" class="form-control">
+                            <option value="">Todos los estados</option>
+                            <option value="disponible" {% if filtro_estado == 'disponible' %}selected{% endif %}>Disponible</option>
+                            <option value="bajo_stock" {% if filtro_estado == 'bajo_stock' %}selected{% endif %}>Bajo Stock</option>
+                            <option value="agotado" {% if filtro_estado == 'agotado' %}selected{% endif %}>Agotado</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="categoria">Categoría:</label>
+                        <select name="categoria" id="categoria" class="form-control">
+                            <option value="">Todas las categorías</option>
+                            {% for categoria in categorias %}
+                            <option value="{{ categoria.id }}" {% if filtro_categoria == categoria.id|stringformat:"i" %}selected{% endif %}>
+                                {{ categoria.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Filtrar</button>
+                        <a href="{% url 'lista_repuestos' %}" class="btn btn-secondary"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Limpiar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if repuestos %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th>Stock</th>
+                    <th>Estado</th>
+                    <th>Precio Costo</th>
+                    <th>Precio Venta</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for repuesto in repuestos %}
+                <tr>
+                    <td><strong>{{ repuesto.codigo }}</strong></td>
+                    <td>
+                        {{ repuesto.nombre }}<br>
+                        <small style="color: #666;">{{ repuesto.marca }} {{ repuesto.modelo_compatible }}</small>
+                    </td>
+                    <td>{{ repuesto.categoria.nombre }}</td>
+                    <td>
+                        {{ repuesto.stock_actual }} / {{ repuesto.stock_minimo }}<br>
+                        <small style="color: #666;">Máx: {{ repuesto.stock_maximo }}</small>
+                    </td>
+                    <td>
+                        <span class="status-badge 
+                            {% if repuesto.estado == 'disponible' %}status-listo
+                            {% elif repuesto.estado == 'bajo_stock' %}status-diagnostico
+                            {% else %}status-ingresado{% endif %}">
+                            {{ repuesto.get_estado_display }}
+                        </span>
+                    </td>
+                    <td>${{ repuesto.precio_costo }}</td>
+                    <td>${{ repuesto.precio_venta }}</td>
+                    <td>
+                        <div style="display: flex; gap: 0.25rem; flex-wrap: wrap;">
+                            <a href="{% url 'detalle_repuesto' repuesto.id %}" class="btn btn-sm btn-primary"><i class="fa-solid fa-eye" aria-hidden="true"></i> Ver</a>
+                            <a href="{% url 'editar_repuesto' repuesto.id %}" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar</a>
+                            {% if repuesto.necesita_reposicion %}
+                            <a href="{% url 'crear_pedido' %}?repuesto={{ repuesto.id }}" class="btn btn-sm btn-warning"><i class="fa-solid fa-cart-plus" aria-hidden="true"></i> Pedir</a>
+                            {% endif %}
+                            <a href="{% url 'movimiento_entrada' %}?repuesto={{ repuesto.id }}" class="btn btn-sm btn-success"><i class="fa-solid fa-download" aria-hidden="true"></i> Entrada</a>
+                            <a href="{% url 'movimiento_salida' %}?repuesto={{ repuesto.id }}" class="btn btn-sm btn-danger"><i class="fa-solid fa-upload" aria-hidden="true"></i> Salida</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align: center; padding: 3rem; color: #666;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;"><i class="fa-solid fa-box" aria-hidden="true"></i></div>
+            <h3>No hay repuestos registrados</h3>
+            <p>Comienza agregando el primer repuesto al inventario.</p>
+            <a href="{% url 'crear_repuesto' %}" class="btn btn-success" style="margin-top: 1rem;">
+                <i class="fa-solid fa-plus" aria-hidden="true"></i> Agregar Primer Repuesto
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

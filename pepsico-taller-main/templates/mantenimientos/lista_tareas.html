@@ -1,0 +1,104 @@
+<!-- templates/mantenimientos/lista_tareas.html -->
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Tareas - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 style="margin: 0;"><i class="fa-solid fa-tools" aria-hidden="true"></i> Gestión de Tareas</h2>
+        <div>
+            {% if user.rol == 'jefe_taller' or user.rol == 'admin' %}
+            <a href="{% url 'crear_tarea' %}" class="btn btn-success"><i class="fa-solid fa-plus" aria-hidden="true"></i> Nueva Tarea</a>
+            {% endif %}
+            <a href="{% url 'clinica_dashboard' %}" class="btn btn-primary"><i class="fa-solid fa-hospital" aria-hidden="true"></i> Ir a inicio</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- Filtros -->
+        <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center;">
+            <strong>Filtrar por estado:</strong>
+            <a href="{% url 'lista_tareas' %}" class="btn btn-sm {% if not request.GET.estado %}btn-primary{% else %}btn-primary{% endif %}">Todos</a>
+            <a href="{% url 'lista_tareas' %}?estado=pendiente" class="btn btn-sm {% if request.GET.estado == 'pendiente' %}btn-primary{% else %}btn-primary{% endif %}">Pendientes</a>
+            <a href="{% url 'lista_tareas' %}?estado=en_proceso" class="btn btn-sm {% if request.GET.estado == 'en_proceso' %}btn-primary{% else %}btn-primary{% endif %}">En Proceso</a>
+            <a href="{% url 'lista_tareas' %}?estado=pausada" class="btn btn-sm {% if request.GET.estado == 'pausada' %}btn-primary{% else %}btn-primary{% endif %}">Pausadas</a>
+            <a href="{% url 'lista_tareas' %}?estado=completada" class="btn btn-sm {% if request.GET.estado == 'completada' %}btn-primary{% else %}btn-primary{% endif %}">Completadas</a>
+        </div>
+
+        {% if tareas %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Tarea</th>
+                    <th>Vehículo</th>
+                    <th>Mecánico</th>
+                    <th>Prioridad</th>
+                    <th>Estado</th>
+                    <th>Fecha Creación</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tarea in tareas %}
+                <tr>
+                    <td>
+                        <strong>{{ tarea.titulo }}</strong><br>
+                        <small style="color: #666;">{{ tarea.descripcion|truncatewords:10 }}</small>
+                    </td>
+                    <td>
+                        <strong>{{ tarea.vehiculo.patente }}</strong><br>
+                        <small style="color: #666;">{{ tarea.vehiculo.marca }} {{ tarea.vehiculo.modelo }}</small>
+                    </td>
+                    <td>{% if tarea.mecanico_asignado %}{{ tarea.mecanico_asignado.get_full_name|default:tarea.mecanico_asignado.username }}{% else %}Sin asignar{% endif %}</td>
+                    <td>
+                        <span class="status-badge priority-{{ tarea.prioridad }}">
+                            {{ tarea.get_prioridad_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ tarea.estado }}">
+                            {{ tarea.get_estado_display }}
+                        </span>
+                    </td>
+                    <td>{{ tarea.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <div style="display: flex; gap: 0.25rem; flex-wrap: wrap;">
+                            {% if tarea.estado == 'pendiente' and tarea.mecanico_asignado == user %}
+                            <a href="{% url 'iniciar_tarea' tarea.id %}" class="btn btn-sm btn-success"><i class="fa-solid fa-play" aria-hidden="true"></i> Iniciar</a>
+                            {% endif %}
+                            
+                            {% if tarea.estado == 'en_proceso' and tarea.mecanico_asignado == user %}
+                            <a href="{% url 'pausar_tarea' tarea.id %}" class="btn btn-sm btn-warning"><i class="fa-solid fa-pause" aria-hidden="true"></i> Pausar</a>
+                            <a href="{% url 'gestionar_repuestos_tarea' tarea.id %}" class="btn btn-sm btn-info"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> Repuestos</a>
+                            <a href="{% url 'completar_tarea' tarea.id %}" class="btn btn-sm btn-success"><i class="fa-solid fa-check-circle" aria-hidden="true"></i> Completar</a>
+                            {% endif %}
+                            
+                            {% if tarea.estado == 'pausada' and tarea.mecanico_asignado == user %}
+                            <a href="{% url 'reanudar_tarea' tarea.id %}" class="btn btn-sm btn-success"><i class="fa-solid fa-play" aria-hidden="true"></i> Reanudar</a>
+                            {% endif %}
+                            
+                           <a href="{% url 'detalle_tarea' tarea.id %}" class="btn btn-sm btn-primary"><i class="fa-solid fa-eye" aria-hidden="true"></i> Ver</a>
+                            {% if user.rol == 'jefe_taller' or user.rol == 'admin' or tarea.mecanico_asignado == user %}
+                            <a href="{% url 'editar_tarea' tarea.id %}" class="btn btn-sm btn-secondary"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar</a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align: center; padding: 3rem; color: #666;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;"><i class="fa-solid fa-file-pen" aria-hidden="true"></i></div>
+            <h3>No hay tareas registradas</h3>
+            <p>Comienza creando la primera tarea de mantenimiento.</p>
+            {% if user.rol == 'jefe_taller' or user.rol == 'admin' %}
+            <a href="{% url 'crear_tarea' %}" class="btn btn-success" style="margin-top: 1rem;">
+                <i class="fa-solid fa-plus" aria-hidden="true"></i> Crear Primera Tarea
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

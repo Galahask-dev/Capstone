@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Detalle de Cita - asdasdasd</title>
+    <!-- Fuente moderna y ligera -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome (icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        :root {
+            --pepsico-blue: #004B93;
+            --pepsico-red: #D32D27;
+            --pepsico-light-blue: #00A3E0;
+            --light-gray: #f8f9fa;
+            --dark-gray: #343a40;
+            --muted: #6c757d;
+            --glass: rgba(255,255,255,0.06);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, var(--pepsico-blue), var(--pepsico-light-blue));
+            color: white;
+            padding: 1.1rem 0; /* navbar más alta */
+            min-height: 72px;
+            box-shadow: 0 8px 22px rgba(2,6,23,0.14);
+            backdrop-filter: saturate(120%) blur(4px);
+            position: sticky;
+            top: 0;
+            z-index: 1200;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        /* Colocar logo pegado al borde izquierdo del navbar (viewport) */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-left: 0;
+            position: absolute;
+            left: 0.6rem; /* separación mínima del borde */
+            top: 50%;
+            transform: translateY(-50%);
+            white-space: nowrap; /* texto sin salto */
+        }
+
+        /* Reservar espacio en el contenedor para que el contenido no se sobreponga al logo y al usuario */
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+            padding-left: 14rem; /* espacio para logo + texto */
+            padding-right: 18rem; /* reducido para acercar elementos al área de usuario */
+        }
+
+        /* Nota: .logo tiene posicionamiento absolute definido arriba */
+        
+        .logo h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .logo-img {
+            height: 2.25rem; /* ajustar para la navbar más alta */
+            width: auto;
+            display: inline-block;
+            border-radius: 4vh;
+            background: rgba(255, 255, 255, 0.932);
+            padding: 5px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 0.6rem;
+            list-style: none;
+            align-items: center;
+            position: absolute; /* ubicar junto al logo */
+            left: 13.5rem; /* movido ligeramente a la derecha */
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1220;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.45rem 0.85rem;
+            border-radius: 6px;
+            transition: background-color 0.18s, transform 0.12s;
+            font-weight: 600;
+            font-size: 0.92rem;
+            opacity: 0.98;
+        }
+
+        /* Icon spacing */
+        .nav-links a i,
+        .dropdown-content a i,
+        .dropdown-section strong i,
+        .dropdown-toggle i {
+            margin-right: 0.55rem;
+            width: 1em;
+            text-align: center;
+        }
+
+        .nav-links a i { font-size: 0.95rem; }
+        .dropdown-section strong i { margin-right: 0.6rem; }
+        
+        .nav-links a:hover {
+            background-color: rgba(255,255,255,0.2);
+        }
+
+        /* Botón "Más" más ancho */
+        .nav-links .btn-mas {
+            padding: 0.45rem 1.5rem;
+            min-width: 120px;
+        }
+
+        /* Indicador de modo vista - ahora posicionado después del buscador */
+        .role-view-indicator {
+            background: linear-gradient(135deg, #ffc107, #f0ad4e);
+            color: #212529;
+            padding: 0.35rem 0.7rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            animation: pulse-glow 2s infinite;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .role-view-indicator:hover {
+            background: linear-gradient(135deg, #ff9800, #ff6b08);
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.5);
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { 
+                box-shadow: 0 0 5px rgba(255, 193, 7, 0.5); 
+            }
+            50% { 
+                box-shadow: 0 0 20px rgba(255, 193, 7, 0.8); 
+            }
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: white;
+            position: absolute; /* pegado a la derecha del viewport */
+            right: 3rem; /* desplazado hacia la izquierda (más dentro del navbar) */
+            top: 50%;
+            transform: translateY(-50%);
+            white-space: nowrap;
+        }
+
+        /* BOTÓN HAMBURGER para móvil */
+        .navbar-toggler {
+            display: none;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.12);
+            padding: 0.35rem 0.5rem;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+        }
+
+    .navbar-toggler:focus { outline: none; box-shadow: 0 0 0 3px rgba(0,163,224,0.12); }
+
+        .nav-links a:active, .nav-links a:hover { transform: translateY(-2px); }
+        
+        /* Barra de búsqueda - colocar a la derecha, antes del login (versión más compacta) */
+        .search-bar {
+            position: absolute;
+            right: 26rem; /* movida más a la izquierda para hacer espacio al indicador de vista */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 240px; /* más pequeña */
+            max-width: 28%;
+            z-index: 1250;
+            font-size: 0.85rem;
+        }
+
+        .search-bar form { display: flex; }
+        .search-bar input[type="text"] { flex: 1; padding: 0.45rem 0.5rem; border: none; border-radius: 4px 0 0 4px; font-size: 0.88rem; }
+        .search-bar button { background: white; border: none; padding: 0.42rem 0.68rem; border-radius: 0 4px 4px 0; cursor: pointer; }
+        
+        .main-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background: var(--pepsico-blue);
+            color: white;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .btn-primary {
+            background: var(--pepsico-blue);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--pepsico-light-blue);
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        /* Fondo personalizado para botones informativos: degradado y efecto hover */
+        .btn-info-bg {
+            background: linear-gradient(135deg, #00A3E0 0%, #004B93 100%);
+            color: white;
+            box-shadow: 0 6px 18px rgba(0, 74, 147, 0.18);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .btn-info-bg:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.03);
+            box-shadow: 0 10px 26px rgba(0, 74, 147, 0.22);
+        }
+
+        /* Variante más suave cuando se usa con .btn-sm */
+        .btn-sm.btn-info-bg { padding: 0.3rem 0.6rem; }
+        
+        .btn-danger {
+            background: var(--pepsico-red);
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .table th {
+            background-color: var(--light-gray);
+            font-weight: 600;
+        }
+        
+        .table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Pequeñas mejoras en el footer */
+        footer {
+            border-top: 1px solid rgba(255,255,255,0.03);
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .status-ingresado { background: #fff3cd; color: #856404; }
+        .status-diagnostico { background: #d1ecf1; color: #0c5460; }
+        .status-reparacion { background: #d4edda; color: #155724; }
+        .status-listo { background: #cce7ff; color: #004085; }
+        .status-entregado { background: #e2e3e5; color: #383d41; }
+        
+    /* Priority styles (soft, flat colors) */
+    .priority-critica { background: #fdecea; color: #7a1f1f; border: 1px solid rgba(250, 80, 80, 0.12); }
+    .priority-alta { background: #fff2e6; color: #6b3a10; border: 1px solid rgba(255, 160, 60, 0.08); }
+    .priority-media { background: #fffbea; color: #6b5a00; border: 1px solid rgba(255, 205, 65, 0.08); }
+    .priority-baja { background: #eaf9fa; color: #065a63; border: 1px solid rgba(20, 160, 160, 0.06); }
+
+    /* Status styles (soft, flat colors) */
+    .status-pendiente { background: #fff9e6; color: #7a5a00; }
+    .status-en_proceso { background: #eef8ff; color: #114a6a; }
+    .status-pausada { background: #fff6ef; color: #7a4b00; }
+    .status-completada { background: #eef9f0; color: #1b6a3b; }
+        
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+        .grid-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+        
+        .metric-card {
+            text-align: center;
+            padding: 1.5rem;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--pepsico-blue);
+            margin: 0.5rem 0;
+        }
+        
+        .metric-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--pepsico-light-blue);
+            box-shadow: 0 0 0 2px rgba(0, 163, 224, 0.25);
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: white;
+            position: absolute; /* pegado a la derecha del viewport */
+            right: 3rem; /* desplazado hacia la izquierda (más dentro del navbar) */
+            top: 50%;
+            transform: translateY(-50%);
+            white-space: nowrap;
+            max-width: 260px; /* evitar que el usuario empuje todo el navbar */
+            overflow: visible; /* permitir que el dropdown se muestre fuera del contenedor */
+        }
+
+        /* Limitar la etiqueta que muestra el nombre para usar ellipsis si es muy larga */
+        .user-info .dropdown-toggle {
+            max-width: 290px;
+            display: inline-block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .dropdown-toggle {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+            display: block;
+        }
+
+        .dropdown-toggle:hover {
+            background-color: rgba(255,255,255,0.2);
+        }
+
+        .dropdown {
+            position: relative; /* ensure dropdown-content positions relative to its toggle */
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background: white;
+            min-width: 600px;
+            max-width: 800px;
+            max-height: 70vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            z-index: 1300; /* above navbar (1200) so it isn't clipped */
+            top: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: auto;
+            opacity: 1;
+            display: none;
+        }
+
+        /* Layout en columnas para el dropdown del menú "Más" */
+        .dropdown-mega {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+        }
+
+        .dropdown-mega .dropdown-section {
+            border-bottom: none;
+            border-right: 1px solid #eee;
+            margin: 0;
+            padding: 0.5rem 0;
+        }
+
+        .dropdown-mega .dropdown-section:last-child {
+            border-right: none;
+        }
+
+        .dropdown-content a {
+            color: #333;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            display: block;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85rem;
+        }
+
+        .dropdown-content a:hover {
+            background: #f8f9fa;
+            color: #004B93;
+        }
+
+        /* Mostrar dropdown únicamente cuando tenga la clase .open (abrir por click) */
+        .dropdown.open .dropdown-content {
+            display: block;
+        }
+
+        /* Alineación alternativa para dropdowns que deben mostrarse a la derecha */
+        .dropdown.align-right .dropdown-content {
+            left: auto;
+            right: 0;
+            transform: none;
+        }
+
+        /* Desplazar ligeramente hacia la derecha dropdowns concretos (ej: 'Más') */
+        .dropdown.shift-right .dropdown-content {
+            left: auto;
+            right: -200px; /* posicionar a la izquierda del botón */
+            top: calc(100% + 6px); /* desplegar hacia abajo */
+            transform: none;
+        }
+
+        .dropdown-section {
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .dropdown-section:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-section strong {
+            display: block;
+            padding: 0.4rem 1rem;
+            color: #004B93;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .dropdown-section a {
+            padding-left: 1.5rem;
+            font-size: 0.8rem;
+            padding-top: 0.4rem;
+            padding-bottom: 0.4rem;
+        }
+
+        /* Estilos responsivos */
+        @media (max-width: 768px) {
+            .navbar-container {
+                flex-direction: column;
+                gap: 1rem;
+                padding-left: 0; /* en móvil volvemos al flujo normal */
+            }
+            
+            .nav-links {
+                flex-direction: column;
+                gap: 0.5rem;
+                width: 100%;
+                display: none; /* hidden by default on mobile, toggled by JS */
+            }
+
+            .navbar-toggler { display: block; }
+
+            .nav-links.show { display: flex; }
+            
+            .dropdown-content {
+                position: static;
+                box-shadow: none;
+                border: 1px solid #ddd;
+                width: 100%;
+            }
+            
+            .user-info {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            /* En móvil, el logo vuelve a posición estática y el texto puede ocupar varios renglones si es necesario */
+            .logo {
+                position: static;
+                transform: none;
+                padding-left: 0;
+                white-space: normal;
+            }
+            .nav-links {
+                position: static;
+                transform: none;
+                left: auto;
+                top: auto;
+                width: 100%;
+                justify-content: flex-start;
+                padding-top: 0.5rem;
+            }
+
+            .navbar-toggler {
+                position: absolute;
+                right: 1rem;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+            .search-bar {
+                position: static;
+                width: 100%;
+                max-width: none;
+                transform: none;
+                margin: 0;
+                order: 1;
+            }
+
+            .search-bar form { width: 100%; }
+
+            .user-info {
+                position: static;
+                transform: none;
+                order: 2;
+            }
+
+            /* Indicador de vista en móvil - posición estática */
+            .role-view-indicator {
+                position: static !important;
+                transform: none !important;
+                margin: 0.5rem 0;
+                display: block;
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+   <!-- templates/base.html - MODIFICAR EL NAVBAR COMPLETO -->
+<nav class="navbar">
+    <div class="navbar-container">
+        <div class="logo">
+            <h1><img src="https://i.postimg.cc/jSTv1DJn/instruments-logo-43257843.png" alt="PepsiCo" class="logo-img"> PepsiCo Taller</h1>
+        </div>
+        
+        <!-- toggler visible en pantallas pequeñas -->
+        <button class="navbar-toggler" aria-label="Abrir menú" id="navbarToggler">☰</button>
+
+        
+        <!-- BARRA DE BÚSQUEDA - AGREGAR -->
+        <div class="search-bar">
+            <form method="get" action="/buscar/">
+                <input type="text" name="q" placeholder="Buscar vehículos, repuestos...">
+                <button type="submit">
+                    <i class="fa-solid fa-magnifying-glass" style="color: #004B93"></i>
+                </button>
+            </form>
+        </div>
+
+    <ul class="nav-links" id="navLinks">
+            <!-- Navegación principal siempre visible -->
+            <li><a href="/vehiculos/" title="Dashboard Principal"><i class="fa-solid fa-hospital"></i>Clínica</a></li>
+            
+            
+            <li><a href="/mantenimientos/tareas/" title="Gestión de Tareas"><i class="fa-solid fa-wrench"></i>Tareas</a></li>
+            
+
+            
+            
+            <li><a href="/inventario/" title="Gestión de Inventario"><i class="fa-solid fa-boxes-stacked"></i>Inventario</a></li>
+            
+
+            
+            
+            <li><a href="/reportes/dashboard/" title="Reportes y Métricas"><i class="fa-solid fa-chart-bar"></i>Reportes</a></li>
+            
+              <!-- Enlace a Gestión de Usuarios para Admin -->
+            
+            <li><a href="/usuarios/registro/" title="Gestión de Usuarios"><i class="fa-solid fa-users-gear"></i>Usuarios</a></li>
+            
+            <!-- Menú desplegable unificado -->
+            <li class="dropdown shift-right">
+                <a href="#" class="dropdown-toggle btn-mas" title="Más operaciones"><i class="fa-solid fa-ellipsis"></i>Más</a>
+                <div class="dropdown-content">
+                    <div class="dropdown-mega">
+                    <!-- Vehículos -->
+                    <div class="dropdown-section">
+                        <strong><i class="fa-solid fa-car-side"></i>Vehículos</strong>
+                        
+                        
+                        {% if user.is_superuser or user.rol == 'admin' or user.rol == 'guardia' or user.rol == 'recepcionista' %}
+                        <a href="/vehiculos/ingreso/"><i class="fa-solid fa-plus"></i>Nuevo Ingreso</a>
+                        {% endif %}
+                        
+
+                        
+                        <a href="/vehiculos/lista/"><i class="fa-solid fa-list"></i>Lista Taller</a>
+
+                        
+                        
+                        <a href="/vehiculos/gestionar/"><i class="fa-solid fa-cog"></i>Gestionar Vehículos</a>
+                        
+                    </div>
+                         <!-- ⬇️ NUEVA SECCIÓN: AGENDA ⬇️ -->
+                        
+                        <div class="dropdown-section">
+                            <strong><i class="fa-solid fa-calendar-days"></i>Agenda</strong>
+                            
+                            
+                            <a href="/agenda/lista/"><i class="fa-solid fa-table-list"></i>Agenda Taller</a>
+                            
+                        </div>
+                        
+                    <!-- Inventario -->
+                    <div class="dropdown-section">
+                        <strong><i class="fa-solid fa-boxes-stacked"></i>Inventario</strong>
+                        
+                        
+                        <a href="/inventario/repuestos/"><i class="fa-solid fa-screwdriver-wrench"></i>Repuestos</a>
+                        <a href="/inventario/categorias/"><i class="fa-solid fa-tags"></i>Categorías</a>
+                        <a href="/inventario/pedidos/"><i class="fa-solid fa-cart-shopping"></i>Pedidos</a>
+                        <a href="/inventario/ajustes/crear/"><i class="fa-solid fa-sliders"></i>Ajustes</a>
+                        
+
+                        
+                        
+                        <a href="/inventario/movimientos/entrada/"><i class="fa-solid fa-inbox"></i>Entrada</a>
+                        <a href="/inventario/movimientos/salida/"><i class="fa-solid fa-box-open"></i>Salida</a>
+                        
+                    </div>
+                    
+                    <!-- Reportes -->
+                    <div class="dropdown-section">
+                        <strong><i class="fa-solid fa-chart-bar"></i>Reportes</strong>
+                        
+                        
+                        <a href="/reportes/productividad/"><i class="fa-solid fa-user-tie"></i>Productividad</a>
+                        <a href="/reportes/tiempos-pausas/"><i class="fa-solid fa-clock"></i>Tiempos</a>
+                        <a href="/reportes/tiempos-taller/"><i class="fa-solid fa-road"></i>Tiempos Taller</a>
+                        
+                    </div>
+                    
+                    <!-- Seguridad -->
+                    <div class="dropdown-section">
+                        <strong><i class="fa-solid fa-shield-halved"></i>Seguridad</strong>
+                        
+                        
+                        <a href="/vehiculos/siniestros/"><i class="fa-solid fa-triangle-exclamation"></i>Siniestros</a>
+                        
+
+                        
+                        <a href="/buscar/"><i class="fa-solid fa-magnifying-glass"></i>Búsqueda Avanzada</a>
+                    </div>
+                    </div>
+                </div>
+            </li>
+        </ul>
+        
+       <!-- Indicador de modo vista - movido después del buscador -->
+        
+
+        <div class="user-info">
+    <div class="dropdown align-right">
+            <a href="#" class="dropdown-toggle" style="color: white; text-decoration: none;">
+            <i class="fa-solid fa-user"></i> 
+            {{ user.get_full_name|default:user.username }} ({{ user.get_rol_display }})
+        </a>
+        <div class="dropdown-content" style="right: 0; left: auto;">
+            <a href="/usuarios/perfil/"><i class="fa-solid fa-gear"></i>Mi Perfil</a>
+            
+            
+            <div style="border-top: 1px solid #eee; margin: 0.5rem 0;"></div>
+            <a href="/usuarios/role-selector/"><i class="fa-solid fa-user-gear"></i>Vista como Rol</a>
+            
+            
+            
+            
+            
+            <div style="border-top: 1px solid #eee; margin: 0.5rem 0;"></div>
+            <a href="/usuarios/logout/" style="color: #dc3545;"><i class="fa-solid fa-right-from-bracket"></i>Cerrar Sesión</a>
+        </div>
+    </div>
+</div>
+        
+    </div>
+</nav>
+    <main class="main-container">
+        
+
+        
+<style>
+  .detalle-header {
+    background: linear-gradient(135deg, #0056b3 0%, #004494 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 24px rgba(0,86,179,0.15);
+  }
+  
+  .detalle-header h2 {
+    font-weight: 700;
+    margin: 0;
+    font-size: 1.75rem;
+  }
+  
+  .btn-volver {
+    background: white;
+    color: #0056b3;
+    border: none;
+    padding: 0.65rem 1.25rem;
+    font-weight: 600;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .btn-volver:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    color: #004494;
+    background: #f8f9fa;
+  }
+  
+  .detalle-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+  
+  .card-header-custom {
+    background: linear-gradient(to right, #f8f9fa, #e9ecef);
+    padding: 1.5rem;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .card-header-custom h5 {
+    margin: 0;
+    font-weight: 700;
+    color: #0056b3;
+    font-size: 1.25rem;
+  }
+  
+  .info-table {
+    margin: 0;
+  }
+  
+  .info-table tr {
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .info-table tr:last-child {
+    border-bottom: none;
+  }
+  
+  .info-table td {
+    padding: 1.1rem 1.1rem;
+    vertical-align: middle;
+  }
+  
+  .info-label {
+    font-weight: 700;
+    color: #495057;
+    width: 30%;
+    font-size: 0.95rem;
+  }
+  
+  .info-value {
+    color: #212529;
+    font-size: 1rem;
+  }
+  
+  .patente-highlight {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #0056b3;
+  }
+  
+  .badge-estado {
+    padding: 0.6rem 1.2rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: inline-block;
+  }
+  
+  .badge-pendiente-custom {
+    background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+    color: #000;
+  }
+  
+  .badge-confirmada-custom {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+  }
+  
+  .badge-cancelada-custom {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+  }
+  
+  .badge-completada-custom {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    color: white;
+  }
+  
+  .card-footer-custom {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-top: 2px solid #dee2e6;
+  }
+  
+  .footer-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #6c757d;
+    font-size: 0.95rem;
+  }
+  
+  .footer-info i {
+    color: #0056b3;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .btn-cerrar {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-cerrar:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+    color: white;
+  }
+  
+  .btn-cancelar-cita {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    border: none;
+    padding: 1.2rem 1.5rem;
+    font-weight: 600;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(220,53,69,0.3);
+  }
+  
+  .btn-cancelar-cita:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(220,53,69,0.4);
+  }
+  
+  .observaciones-box {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 10px;
+    border-left: 4px solid #0056b3;
+  }
+</style>
+
+<div class="container mt-4">
+  <div class="detalle-header">
+    <div class="d-flex justify-content-between align-items-center">
+      <h2><i class="fas fa-calendar-check me-3"></i> Detalle de Cita</h2>
+      <a href="/agenda/lista/" class="btn-volver">
+        <i class="fas fa-arrow-left"></i> Volver a Citas
+      </a>
+    </div>
+  </div>
+
+  <div class="detalle-card">
+    <div class="card-header-custom">
+      <h5><i class="fas fa-file-contract me-2"></i> Información de la Cita</h5>
+    </div>
+    <div class="card-body p-0">
+      <table class="table info-table">
+        <tr>
+          <td class="info-label"><i class="fas fa-id-card me-2"></i>Patente:</td>
+          <td class="info-value"><span class="patente-highlight">asdasdasd</span></td>
+        </tr>
+        
+        <tr>
+          <td class="info-label"><i class="fas fa-wrench me-2"></i>Tipo de Mantención:</td>
+          <td class="info-value"><span class="badge bg-info text-white">Reparación Correctiva</span></td>
+        </tr>
+        <tr>
+          <td class="info-label"><i class="fas fa-calendar-day me-2"></i>Fecha y Hora:</td>
+          <td class="info-value">
+            <strong>20/11/2025</strong> a las <strong>15:41</strong> hrs
+          </td>
+        </tr>
+        <tr>
+          <td class="info-label"><i class="fas fa-hourglass-half me-2"></i>Duración Estimada:</td>
+          <td class="info-value"><span class="badge bg-light text-dark">60 minutos</span></td>
+        </tr>
+        <tr>
+          <td class="info-label"><i class="fas fa-flag me-2"></i>Estado:</td>
+          <td class="info-value">
+            
+              <span class="badge-estado badge-pendiente-custom">Pendiente</span>
+            
+          </td>
+        </tr>
+        <tr>
+          <td class="info-label"><i class="fas fa-user-circle me-2"></i>Solicitante:</td>
+          <td class="info-value">admin</td>
+        </tr>
+        <tr>
+          <td class="info-label"><i class="fas fa-clock me-2"></i>Fecha de Creación:</td>
+          <td class="info-value text-muted">05/11/2025 15:41</td>
+        </tr>
+        
+          <tr>
+            <td class="info-label"><i class="fas fa-comment-dots me-2"></i>Observaciones:</td>
+            <td class="info-value">
+              <div class="observaciones-box">adsasd</div>
+            </td>
+          </tr>
+        
+      </table>
+    </div>
+    <div class="card-footer-custom">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="footer-info">
+          <i class="fas fa-info-circle"></i>
+          <span>
+            
+              Cita pendiente
+            
+          </span>
+        </div>
+
+        <div class="action-buttons">
+          <a href="/agenda/lista/" class="btn-cerrar">
+            <i class="fas fa-times me-2"></i> Cerrar
+          </a>
+
+          
+            
+              <form method="post" action="{% url 'agenda:cancelar_cita' cita.id %}" class="d-inline m-0">
+                {% csrf_token %}
+                <button type="submit" class="btn-cancelar-cita"
+                        onclick="return confirm('¿Estás seguro de cancelar esta cita?');">
+                  <i class="fas fa-ban me-2"></i> Cancelar Cita
+                </button>
+              </form>
+            
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    </main>
+
+    <footer style="text-align: center; padding: 2rem; background: var(--dark-gray); color: white; margin-top: 4rem;">
+        <p>PepsiCo Chile - Sistema de Gestión de Taller &copy; 2025</p>
+    </footer>
+    <script>
+        // Toggle para menú móvil y dropdowns por click
+        (function() {
+            // Mobile navbar toggler
+            const toggler = document.getElementById('navbarToggler');
+            const nav = document.getElementById('navLinks');
+            if (toggler && nav) {
+                toggler.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    nav.classList.toggle('show');
+                });
+            }
+
+            // Dropdowns: abrir/cerrar por click
+            const dropdownToggles = Array.from(document.querySelectorAll('.dropdown > .dropdown-toggle'));
+            dropdownToggles.forEach(function(toggle) {
+                const parent = toggle.parentElement;
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // cerrar otros dropdowns
+                    document.querySelectorAll('.dropdown.open').forEach(function(d) {
+                        if (d !== parent) d.classList.remove('open');
+                    });
+                    parent.classList.toggle('open');
+                });
+            });
+
+            // Cerrar dropdowns y nav al clicar fuera
+            document.addEventListener('click', function(e) {
+                // cerrar nav mobile
+                if (nav && !nav.contains(e.target) && toggler && !toggler.contains(e.target)) {
+                    nav.classList.remove('show');
+                }
+                // cerrar dropdowns
+                document.querySelectorAll('.dropdown.open').forEach(function(d) {
+                    if (!d.contains(e.target)) d.classList.remove('open');
+                });
+            });
+
+            // Cerrar al presionar Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    if (nav) nav.classList.remove('show');
+                    document.querySelectorAll('.dropdown.open').forEach(function(d) { d.classList.remove('open'); });
+                }
+            });
+        })();
+    </script>
+    </body>
+    </html>

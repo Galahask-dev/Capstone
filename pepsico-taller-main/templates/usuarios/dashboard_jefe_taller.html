@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Jefe de Taller - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0;"><i class="fa-solid fa-helmet-safety"></i> Dashboard Jefe de Taller</h2>
+        <span class="badge bg-primary">{{ user.get_rol_display }}</span>
+    </div>
+    <div class="card-body">
+        <div class="grid grid-4" style="margin-bottom: 1.5rem;">
+            <div class="card metric-card"><div class="metric-value">{{ estadisticas.total_vehiculos }}</div><div class="metric-label">Vehículos en Taller</div></div>
+            <div class="card metric-card"><div class="metric-value">{{ estadisticas.listos_para_retiro }}</div><div class="metric-label">Listos para Retiro</div></div>
+            <div class="card metric-card"><div class="metric-value">{{ estadisticas.tareas_pendientes }}</div><div class="metric-label">Tareas Pendientes</div></div>
+            <div class="card metric-card"><div class="metric-value">{{ estadisticas.tareas_activas }}</div><div class="metric-label">Tareas Activas</div></div>
+            <div class="card metric-card"><div class="metric-value">{{ estadisticas.citas_pendientes }}</div><div class="metric-label">Citas Pendientes</div></div>
+        </div>
+
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="margin:0;"><i class="fa-solid fa-calendar-check"></i> Citas de Mantención</h3>
+                <a href="{% url 'agenda:lista_citas' %}" class="btn btn-outline-primary"><i class="fa-solid fa-table-list"></i> Ver Agenda</a>
+            </div>
+            <div class="card-body">
+                {% if citas_pendientes %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Patente</th>
+                            <th>Fecha</th>
+                            <th>Duración</th>
+                            <th>Solicitante</th>
+                            <th>Asignar mecánico</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in citas_pendientes %}
+                        <tr>
+                            <td><strong>{{ c.patente }}</strong>{% if c.vehiculo %}<br><small style="color:#666;">{{ c.vehiculo.marca }} {{ c.vehiculo.modelo }}</small>{% endif %}</td>
+                            <td>{{ c.fecha_hora|date:"d/m/Y" }}<br><small style="color:#666;">{{ c.fecha_hora|date:"H:i" }} hrs</small></td>
+                            <td>{{ c.duracion_minutos }} min</td>
+                            <td>{% if c.solicitante %}{{ c.solicitante.get_full_name|default:c.solicitante.username }}{% else %}<span style="color:#666;">–</span>{% endif %}</td>
+                            <td>
+                                <form method="post" action="{% url 'crear_tarea_desde_cita' c.id %}" style="display:flex; gap:0.5rem; align-items:center;">
+                                    {% csrf_token %}
+                                    <select name="mecanico_id" class="form-control" style="min-width:220px;">
+                                        <option value="">Selecciona mecánico…</option>
+                                        {% for m in mecanicos %}
+                                        <option value="{{ m.id }}">{{ m.get_full_name|default:m.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-check"></i> Asignar y Crear</button>
+                                </form>
+                            </td>
+                            <td>
+                                <div style="display:flex; gap:0.25rem;">
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="text-align:center; color:#666;">No hay citas pendientes.</p>
+                {% endif %}
+            </div>
+        </div>
+
+
+
+
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <div class="card-header"><h3 style="margin:0;"><i class="fa-solid fa-gauge-high"></i> Carga de Trabajo por Mecánico</h3></div>
+            <div class="card-body">
+                {% regroup tareas_activas by mecanico_asignado as tareas_por_mecanico %}
+                {% if tareas_por_mecanico %}
+                <table class="table">
+                    <thead><tr><th>Mecánico</th><th>Tareas Activas</th><th>Detalle</th></tr></thead>
+                    <tbody>
+                        {% for grupo in tareas_por_mecanico %}
+                        <tr>
+                            <td>{% if grupo.grouper %}{{ grupo.grouper.get_full_name|default:grupo.grouper.username }}{% else %}-{% endif %}</td>
+                            <td>{{ grupo.list|length }}</td>
+                            <td>
+                                {% for t in grupo.list|slice:":3" %}
+                                    <span class="badge bg-info">#{{ t.id }}</span>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="text-align:center; color:#666;">No hay tareas activas.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <div class="card-header"><h3 style="margin:0;"><i class="fa-solid fa-road"></i> Estado del Taller</h3></div>
+            <div class="card-body">
+                {% regroup vehiculos_en_taller by estado as vehiculos_por_estado %}
+                {% if vehiculos_por_estado %}
+                <ul style="list-style:none; padding:0; margin:0 0 1rem 0; display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:0.75rem;">
+                    {% for grupo in vehiculos_por_estado %}
+                    <li class="card" style="padding:0.75rem;">
+                        <div style="font-weight:600;">{{ grupo.grouper }}</div>
+                        <div style="color:#666;">{{ grupo.list|length }} vehículos</div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p style="text-align:center; color:#666;">No hay vehículos en taller.</p>
+                {% endif %}
+                <a href="{% url 'lista_taller' %}" class="btn btn-primary"><i class="fa-solid fa-list"></i> Ver Lista Taller</a>
+            </div>
+        </div>
+
+ 
+        </div>
+    </div>
+</div>
+{% endblock %}

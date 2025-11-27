@@ -1,0 +1,137 @@
+<!-- templates/vehiculos/ingreso_vehiculo.html -->
+{% extends 'base.html' %}
+
+{% block title %}Ingreso de Vehículo - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="row-inline u-gap-md" style="width:100%; justify-content: space-between;">
+            <h2 style="margin: 0;"><i class="fa-solid fa-car" aria-hidden="true"></i> Ingreso de Vehículo al Taller</h2>
+            <div class="row-inline u-gap-sm">
+                {% if user.is_superuser or user.rol == 'admin' %}
+                <a href="{% url 'importar_vehiculos_excel' %}" class="btn btn-success">
+                    <i class="fa-solid fa-file-excel" aria-hidden="true"></i> Importar desde Excel
+                </a>
+                {% endif %}
+                <a href="{% url 'clinica_dashboard' %}" class="btn btn-primary">
+                    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Volver al Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="grid grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 style="margin: 0;"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i> Información del Vehículo</h3>
+                    </div>
+                    <div class="card-body" style="display:grid; gap: var(--space-sm);">
+                        <div class="form-group">
+                            <label for="id_patente">Patente *</label>
+                            {{ form.patente }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_tipo_vehiculo">Tipo de Vehículo *</label>
+                            {{ form.tipo_vehiculo }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_marca">Marca *</label>
+                            {{ form.marca }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_modelo">Modelo *</label>
+                            {{ form.modelo }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_año">Año *</label>
+                            {{ form.año }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_flota">Flota</label>
+                            {{ form.flota }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_activo" class="row-inline u-gap-sm">
+                                <input type="checkbox" id="id_activo" name="activo" checked class="form-check-input">
+                                <span>Vehículo Activo</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 style="margin: 0;"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Información Adicional</h3>
+                    </div>
+                    <div class="card-body" style="display:grid; gap: var(--space-sm);">
+                        <div class="form-group">
+                            <label for="id_numero_chasis">Número de Chasis</label>
+                            {{ form.numero_chasis }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_kilometraje">Kilometraje *</label>
+                            {{ form.kilometraje }}
+                        </div>
+                        <h3 style="margin: 0.5rem 0 0; color: #004B93;"><i class="fa-solid fa-user" aria-hidden="true"></i> Información del Chofer</h3>
+                        <div class="form-group">
+                            <label for="id_nombre_chofer">Nombre del Chofer *</label>
+                            {{ form.nombre_chofer }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_telefono_chofer">Teléfono *</label>
+                            {{ form.telefono_chofer }}
+                        </div>
+                        <div class="form-group">
+                            <label for="id_empresa_chofer">Empresa</label>
+                            {{ form.empresa_chofer }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Motivo de Ingreso -->
+            <div class="card" style="margin-top: 1.5rem;">
+                <div class="card-header">
+                    <h3 style="margin: 0;"><i class="fa-solid fa-wrench" aria-hidden="true"></i> Motivo del Ingreso</h3>
+                </div>
+                <div class="card-body" style="display:grid; gap: var(--space-sm);">
+                    <div class="form-group">
+                        <label for="id_motivo_ingreso">Motivo de Ingreso *</label>
+                        {{ form.motivo_ingreso }}
+                    </div>
+                    <div class="form-group">
+                        <label for="id_observaciones_ingreso">Observaciones</label>
+                        {{ form.observaciones_ingreso }}
+                    </div>
+                </div>
+            </div>
+            
+            {% if user.rol == 'guardia' %}
+            <div class="card" style="margin-top: 1.5rem;">
+                <div class="card-header">
+                    <h3 style="margin: 0;"><i class="fa-solid fa-camera" aria-hidden="true"></i> Fotos del Estado Inicial</h3>
+                </div>
+                <div class="card-body" style="display:grid; gap: var(--space-sm);">
+                    <div class="form-group">
+                        <label for="id_fotos_ingreso">Subir fotografías (múltiples)</label>
+                        <input type="file" id="id_fotos_ingreso" name="fotos_ingreso" accept="image/*" multiple class="form-control">
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="row-inline u-gap-sm" style="margin-top: 2rem; justify-content: center;">
+                <button type="submit" class="btn btn-success" style="padding: 0.75rem 2rem;">
+                    <i class="fa-solid fa-check" aria-hidden="true"></i> Ingresar Vehículo al Taller
+                </button>
+                <a href="{% url 'clinica_dashboard' %}" class="btn btn-primary">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

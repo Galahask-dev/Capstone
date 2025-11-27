@@ -1,0 +1,154 @@
+<!-- templates/usuarios/dashboard_guardia.html -->
+{% extends 'base.html' %}
+
+{% block title %}Mi Dashboard - Guardia - PepsiCo Taller{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 style="margin: 0;">🏭 Dashboard - Guardia</h2>
+        <a href="{% url 'perfil_usuario' %}" class="btn btn-primary">👤 Mi Perfil</a>
+    </div>
+    <div class="card-body">
+        <!-- Estadísticas Compactas -->
+        <div class="grid grid-4" style="margin-bottom: 2rem;">
+            <div class="card metric-card">
+                <div class="metric-value">{{ estadisticas.total_ingresados }}</div>
+                <div class="metric-label">Total Ingresados</div>
+            </div>
+            <div class="card metric-card">
+                <div class="metric-value" style="color: #28a745;">{{ estadisticas.ingresos_hoy }}</div>
+                <div class="metric-label">Ingresos Hoy</div>
+            </div>
+            <div class="card metric-card">
+                <div class="metric-value" style="color: #17a2b8;">{{ estadisticas.ingresos_semana }}</div>
+                <div class="metric-label">Esta Semana</div>
+            </div>
+            <div class="card metric-card">
+                <div class="metric-value" style="color: #ffc107;">{{ estadisticas.en_taller_actual }}</div>
+                <div class="metric-label">En Taller Ahora</div>
+            </div>
+        </div>
+
+        <!-- Acciones Principales -->
+        <div class="grid grid-2" style="gap: 1.5rem; margin-bottom: 2rem;">
+            <a href="{% url 'panel_guardia' %}" class="card"
+                style="text-decoration: none; color: inherit; transition: transform 0.2s;">
+                <div class="card-body" style="text-align: center; padding: 2rem;">
+                    <div style="font-size: 3rem; margin-bottom: 0.5rem;">🛡️</div>
+                    <h3 style="margin: 0 0 0.5rem 0; color: #004B93;">Panel de Control</h3>
+                    <p style="margin: 0; color: #666; font-size: 0.9rem;">Gestionar entradas y salidas</p>
+                </div>
+            </a>
+            <a href="{% url 'pendientes_ingreso' %}" class="card"
+                style="text-decoration: none; color: inherit; transition: transform 0.2s;">
+                <div class="card-body" style="text-align: center; padding: 2rem;">
+                    <div style="font-size: 3rem; margin-bottom: 0.5rem;">📝</div>
+                    <h3 style="margin: 0 0 0.5rem 0; color: #004B93;">Pendientes de Ingreso</h3>
+                    <p style="margin: 0; color: #666; font-size: 0.9rem;">Aprobar o ignorar solicitudes</p>
+                </div>
+            </a>
+
+        </div>
+
+        <!-- Vehículos en Taller -->
+        <div class="card">
+            <div class="card-header">
+                <h3 style="margin: 0;">🏭 Vehículos en Taller</h3>
+                <small>{{ estadisticas.en_taller_actual }} vehículos</small>
+            </div>
+            <div class="card-body">
+                {% if vehiculos_taller %}
+                <div class="grid grid-2">
+                    {% for vehiculo in vehiculos_taller %}
+                    <div class="card" style="border: 1px solid #ddd;">
+                        <div class="card-body">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                <h4 style="margin: 0; color: #004B93;">{{ vehiculo.patente }}</h4>
+                                <span class="status-badge status-{{ vehiculo.estado }}">
+                                    {{ vehiculo.get_estado_display }}
+                                </span>
+                            </div>
+                            <p style="margin: 0.25rem 0; font-weight: 500;">
+                                {{ vehiculo.marca }} {{ vehiculo.modelo }}
+                            </p>
+                            <p style="margin: 0.25rem 0; color: #666; font-size: 0.9rem;">
+                                👤 {{ vehiculo.nombre_chofer }}<br>
+                                📅 {{ vehiculo.fecha_ingreso|date:"d/m/Y H:i" }}<br>
+                                ⏱️ {{ vehiculo.fecha_ingreso|timesince }}
+                            </p>
+                            <div style="margin-top: 0.75rem;">
+                                <a href="{% url 'detalle_vehiculo' vehiculo.id %}" class="btn btn-sm btn-primary">Ver
+                                    Detalles</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 3rem; color: #666;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
+                <p style="margin: 0; font-size: 1.1rem;">No hay vehículos en el taller actualmente</p>
+            </div>
+            {% endif %}
+        </div>
+        <!-- Vehículos Listos para Retiro -->
+        <div class="card" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h3 style="margin: 0;">🚗 Vehículos Listos para Retiro</h3>
+                <small>{{ vehiculos_listos|length }} vehículos</small>
+            </div>
+            <div class="card-body">
+                {% if vehiculos_listos %}
+                <div class="grid grid-2">
+                    {% for vehiculo in vehiculos_listos %}
+                    <div class="card" style="border: 1px solid #ddd;">
+                        <div class="card-body">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                <h4 style="margin: 0; color: #004B93;">{{ vehiculo.patente }}</h4>
+                                <span class="status-badge status-{{ vehiculo.estado }}">
+                                    {{ vehiculo.get_estado_display }}
+                                </span>
+
+
+                            </div>
+                            <p style="margin: 0.25rem 0; font-weight: 500;">
+                                {{ vehiculo.marca }} {{ vehiculo.modelo }}
+                            </p>
+                            <p style="margin: 0.25rem 0; color: #666; font-size: 0.9rem;">
+                                👤 {{ vehiculo.nombre_chofer }}<br>
+                                📅 {{ vehiculo.fecha_ingreso|date:"d/m/Y H:i" }}<br>
+                                ⏱️ {{ vehiculo.fecha_ingreso|timesince }}
+                            </p>
+                            <div style="margin-top: 0.75rem;">
+                                <a href="{% url 'detalle_vehiculo' vehiculo.id %}" class="btn btn-sm btn-primary">Ver
+                                    Detalles</a>
+                                <a href="{% url 'registrar_salida' vehiculo.id %}" class="btn btn-sm btn-success"
+                                    style="margin-left: 0.5rem;">Registrar Salida</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 2rem; color: #666;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">✅</div>
+                    <p style="margin: 0; font-size: 1rem;">No hay vehículos listos para retiro.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<style>
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
